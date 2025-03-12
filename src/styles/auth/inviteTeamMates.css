@@ -1,0 +1,357 @@
+.loginHeading {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: var(--gray1);
+  margin-bottom: 5px;
+}
+.loginSubHeading {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: var(--gray2);
+}
+.loginWithGoogleBtn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+  gap: 5px;
+}
+.loginHr {
+  color: var(--gray5);
+  background-color: var(--gray5);
+  width: 100%;
+  margin: 15px auto 30px auto;
+  border: 1px solid var(--gray5);
+}
+.loginMidContainer {
+  padding: 3%;
+  width: 100%;
+}
+.loginFirstContainer {
+  /* box-shadow: 0px 6px 12px 0px #abbed14d; */
+  padding: 20px 15px;
+  width: 100%;
+}
+/* antd css  */
+.loginFirstContainer .ant-row {
+  display: unset;
+}
+.loginMidContainer .ant-form-item {
+  margin-bottom: unset;
+}
+.loginFirstContainer .ant-form-item {
+  margin-bottom: unset;
+}
+.loginMidContainer .ant-input-affix-wrapper {
+  margin-bottom: unset !important;
+}
+.loginFirstContainer .ant-checkbox-group {
+  flex-wrap: unset;
+}
+.loginSubmitBtn {
+  width: 100%;
+  background-color: var(--neutral-black);
+  margin-bottom: 5px;
+  color: #fff !important;
+}
+/* .loginSubmitBtn:hover {
+  width: 100%;
+  background-color: var(--neutral-black) !important;
+  margin-bottom: 5px;
+} */
+.loginForgetPassLink {
+  line-height: 20px;
+  letter-spacing: 0em;
+  color: var(--blue-text);
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.underlineText {
+  text-decoration: underline;
+}
+.loginLinks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.signUpLink {
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+}
+.forgetPassBtnContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.forgetPassBtn1 {
+  box-shadow: 0px 6px 12px 0px #abbed14d;
+  border: 1px solid var(--gray5);
+  border-radius: 4px;
+  height: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+}
+.forgetPassBtn2 {
+  box-shadow: 0px 6px 12px 0px #abbed14d;
+  border: 1px solid var(--gray5);
+  border-radius: 4px;
+  height: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.forgetPassMidContainer {
+  margin-bottom: 30px;
+}
+.marginBottom20 {
+  margin-bottom: 20px !important;
+}
+.passwordValidationChar {
+  font-size: 13px;
+}
+.resetErrorHeading {
+  font-size: 13px;
+  color: var(--gray2);
+}
+.selectInputNamesInitials {
+  width: 20% !important;
+}
+.loginFirstContainer .ant-form-item .ant-form-item-control-input-content {
+  display: flex;
+  gap: 10px;
+}
+.userOnboardingSubmitBtn {
+  width: 100%;
+  background-color: var(--orange-color);
+  margin-bottom: 5px;
+  color: #fff !important;
+}
+.themeColorDiv {
+  display: flex;
+  margin-top: 20px;
+  gap: 12px;
+  width: 100%;
+}
+.userOnBoardingThemeColor {
+  height: 38px;
+  width: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.inviteSubmitBtn {
+  background-color: var(--orange-color);
+  width: 100%;
+}
+.inviteSelectedPeopleWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  /* border: 1px solid red; */
+  /* margin: 0% 32%; */
+  box-shadow: 0px 0px 12.01111125946045px 0px #00000014;
+  padding: 5px 10px;
+  color: #5d5b5b;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+.inviteSelectedPeopleAvatar {
+  width: 40px !important;
+  height: 40px !important;
+}
+.inviteSelectedPeopleEmail {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 57px;
+  letter-spacing: 0px;
+  text-align: left;
+}
+.inviteSelectedPeopleRole {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 42px;
+  letter-spacing: 0em;
+  text-align: center;
+}
+.inviteSelectedPeopleInnerWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inviteBtnsWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 60px;
+}
+/* .inviteSkipBtn {
+  border: unset !important;
+} */
+.inviteBtnsWrapper .ant-btn-primary {
+  border: unset !important;
+  background-color: unset;
+  border-radius: unset;
+}
+.moodPhotosDiv {
+  display: flex;
+  /* width: 50%; */
+  justify-content: space-around;
+  align-items: center;
+  margin: 5% auto;
+  border: 1px solid red;
+  height: 100%;
+}
+.moodNames {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: #333333;
+  margin-top: 10px;
+}
+.moodPhoto {
+  border: 1px solid #abbed1;
+  border-radius: 4px;
+  padding: 30px;
+  cursor: pointer;
+  height: auto;
+}
+.moodPhoto:hover {
+  border: 1px solid #717171;
+  box-shadow: 0px 0px 70.69999694824219px 0px #fbc18b96;
+}
+.moodWrapper {
+  margin-top: 5%;
+}
+.slick-initialized {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+}
+.slick-list {
+  width: 100% !important;
+}
+.carouselImageContainer {
+  text-align: center;
+}
+
+.carouselImage {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  transition: all 0.3s ease;
+}
+
+/* Style for the central image */
+.slick-active .slick-center .carouselImage {
+  transform: scale(1.9);
+}
+
+/* Styles for the images on the sides */
+.slick-active .slick-slide:not(.slick-center) .carouselImage {
+  transform: scale(0.8);
+  opacity: 0.7;
+}
+.react-3d-carousel .slider-container .slider-right div {
+  border: unset !important;
+}
+.react-3d-carousel .slider-container .slider-left div {
+  border: unset !important;
+}
+.uploadPictureAtMood {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #abbed1;
+  box-shadow: 0px 4px 8px 0px #abbed166;
+  border-radius: 4px;
+  width: 10%;
+  margin: auto;
+  cursor: pointer;
+}
+.loginTopDiv {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+.inviteForm {
+  width: 100%;
+}
+.inviteSendBtn {
+  color: #fff;
+  background-color: var(--orange-color);
+  border-radius: 5px;
+  border: 1px solid var(--orange-color);
+}
+.inviteSendBtn:hover {
+  border: 1px solid #000 !important;
+}
+@media only screen and (max-width: 600px) {
+  /* .loginBackWrapper {
+    height: 100%;
+  } */
+  .loginMain {
+    background-color: var(--default-background-color);
+    margin: 3% auto;
+    padding: 17% 1%;
+    border-radius: 10px;
+    width: 100%;
+  }
+  .loginTopDiv {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    padding: 5% 1%;
+  }
+  .loginHeading {
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+  .loginSubHeading {
+    font-size: 11px;
+  }
+  .loginBottomDiv {
+    width: 100%;
+    margin: 50px auto 5% auto;
+  }
+  .loginMidContainer {
+    padding: 3%;
+  }
+}

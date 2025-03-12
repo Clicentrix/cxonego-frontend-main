@@ -1,0 +1,372 @@
+.funnelChart {
+  width: 1118.47px;
+  height: 262.57px;
+  top: 117.02px;
+  left: 35.84px;
+  gap: 0px;
+  border: 2.01px 0px 0px 0px;
+  opacity: 0px;
+
+  opacity: 0px;
+  background: linear-gradient(
+    90deg,
+    #3a7fff 0%,
+    rgba(235, 235, 235, 0.8) 62.19%,
+    #feb321 108.49%
+  );
+  border: 2.01px solid #ffffff;
+}
+.funnel-container {
+  width: 300px; /* Adjust width as needed */
+  height: 100px; /* Adjust height as needed */
+  overflow: hidden;
+  position: relative;
+}
+
+.funnel {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 200%;
+  height: 100%;
+  background: #ccc; /* Adjust background color as needed */
+  border-radius: 50%;
+  transform-origin: 50% 50%;
+  transform: translateX(-50%) skewX(-30deg);
+  z-index: 1;
+}
+
+.funnel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: #fff; /* Adjust background color as needed */
+  transform-origin: 100% 50%;
+  transform: skewX(30deg);
+  z-index: 2;
+}
+
+.funnel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  background: #fff; /* Adjust background color as needed */
+  z-index: 2;
+}
+.leadDash1WrapperGlobal {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  position: relative;
+  padding: 10px;
+  color: var(--gray3);
+}
+.displayFlexRow {
+  display: flex;
+  gap: 3px;
+}
+.dashboardSelect {
+  width: 14%;
+  cursor: pointer !important;
+}
+.dashboardSelectDateRange {
+  width: 15%;
+  cursor: pointer !important;
+}
+/* antd Select css  */
+.leadDash1Wrapper .ant-select .ant-select-selection-placeholder {
+  color: var(--gray3);
+  font-size: 12px;
+}
+.leadDash1Wrapper .ant-picker .ant-picker-input > input {
+  color: unset;
+  color: var(--gray3) !important;
+  font-size: 12px !important;
+  border-radius: 4px;
+}
+.leadDash1Wrapper .ant-select-multiple .ant-select-selector {
+  border-radius: 4px;
+}
+.leadDash1Wrapper .ant-picker {
+  border-radius: 3px;
+}
+.customDateWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.displayFlexRow {
+  border: 1px solid var(--gray4);
+  color: var(--gray3);
+  border-radius: 3px;
+  background-color: var(--default-background-color);
+  font-size: 12px;
+  width: 100px;
+  padding: 7px;
+  cursor: pointer;
+}
+.estRevenueInputWrapper {
+  width: 300px;
+  position: absolute;
+  right: 50px;
+  padding: 10px;
+  margin-top: 15px;
+  /* background-color: var(--gray8); */
+  /* box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 4px; */
+  color: var(--gray3);
+  display: flex;
+  gap: 10px;
+}
+.leadDash2Wrapper {
+  margin-top: 3%;
+  width: 100%;
+}
+
+.leadKPIWrapper {
+  display: flex;
+  gap: 50px;
+  margin-top: 2%;
+  justify-content: center;
+}
+.leadKPITitle {
+  font-size: 16px;
+  margin-bottom: 2%;
+}
+.leadKPIItem {
+  box-shadow: 0px 11.75428295135498px 20.896503448486328px 0px #d0d2da26;
+  border-radius: 5px;
+  padding: 15px 25px;
+  background-color: var(--default-background-color);
+  display: flex;
+  gap: 15px;
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.01), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+  padding: 20px;
+}
+.leadDashboardKPI {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14.63px;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 5px;
+}
+.leadDashboardKPIData {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28.45px;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+.leadDash3Wrapper {
+  margin: 4% 0%;
+  display: grid;
+  grid-template-columns: 70% 30%;
+  grid-gap: 20px;
+}
+.leadDashboardFunnelImg {
+  width: 100%;
+}
+.leadDashboardBox1 {
+  width: 90px;
+  height: 25px;
+  top: 69px;
+  left: 57px;
+  gap: 0px;
+  opacity: 0px;
+  color: var(--gray3);
+}
+.leadDashFunnelDataWrapper {
+  display: flex;
+  justify-content: center;
+  gap: 11.5%;
+  margin-bottom: -30px;
+}
+.leadDashFunnelDataWrapper2 {
+  display: flex;
+  justify-content: center;
+  gap: 11.5%;
+  margin-top: -30px;
+}
+.leadDashFunnelWrapper {
+  padding: 40px 40px 40px 40px;
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+}
+.leadDashPieWrapper {
+  background-color: var(--default-background-color);
+  box-shadow: 0px 11.75428295135498px 20.896503448486328px 0px #d0d2da26;
+  border-radius: 5px;
+  padding: 20px 20px;
+  display: flex;
+  width: 325px;
+  /* height: 325px; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* padding: 40px 40px 20px 40px; */
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+}
+.leadDashTableTitle {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+}
+.leadDashTableWrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px;
+}
+.leadDashFunnelData1 {
+  align-self: flex-start;
+  width: 100px;
+  text-align: center;
+}
+.leadDashboardBox2 {
+  width: 100px;
+  text-align: center;
+}
+.filterSelectWrapper1 {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+.filterSelectWrapper1
+  .ant-select-outlined:not(.ant-select-customize-input)
+  .ant-select-selector {
+  /* border: unset; */
+  border-radius: unset;
+  background-color: transparent !important;
+  color: #4d4d4d !important;
+}
+.leadDashTableToolbarWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2% 0 !important;
+}
+@media screen and (max-width: 768px) {
+  .dashboardWrapper {
+    padding: 10px;
+  }
+  .filtersContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .dashboardSelect {
+    width: unset;
+  }
+  .dashboardSelectDateRange {
+    width: unset;
+  }
+
+  .displayFlexRow {
+    width: 100%;
+  }
+  .leadDash1WrapperGlobal {
+    padding: unset;
+  }
+  .dashboardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .leadDashTableTitle {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .leadKPIWrapper {
+    width: 100%;
+    overflow-x: scroll;
+    gap: 10px;
+  }
+  .leadKPIItem {
+    padding: 10px;
+  }
+  .leadDashboardKPI {
+    width: 100px;
+  }
+  .leadDash2Wrapper {
+    margin-top: 40px;
+  }
+  .leadDash3Wrapper {
+    grid-template-columns: 100%;
+    font-size: 11px;
+  }
+  .leadDashFunnelWrapper {
+    padding: 10px 10px 15px 10px;
+    margin-bottom: -10px;
+  }
+  .leadDashFunnelDataWrapper {
+    margin-bottom: -22px;
+  }
+  .leadDashboardBox2 {
+    width: unset;
+  }
+  .leadDashboardBox1 {
+    width: unset;
+  }
+  .leadDashFunnelDataWrapper2 {
+    gap: 16%;
+    margin-top: -12px;
+  }
+  .leadDashTableToolbarWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .leadDashTableWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: unset;
+    width: 100%;
+  }
+  .filterSelectWrapper1 {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .pipelineTitle {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .leadDashPieWrapper {
+    padding: 10px;
+    width: 100%;
+  }
+  .leadDash4Wrapper {
+    margin-top: 30px;
+  }
+  .leadDashTableToolbarWrapper {
+    margin: 5% 0;
+  }
+  .leadsListToolbarItem {
+    width: unset !important;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+}

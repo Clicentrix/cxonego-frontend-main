@@ -1,0 +1,133 @@
+.importRecordsMainDiv {
+  padding: 20px 10px;
+  height: 98vh;
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+}
+.selectEntity {
+  flex: 1;
+  border: 2px solid var(--gray4); /* Add border to each box */
+  margin: 0 10px; /* Add horizontal gap between boxes */
+  text-align: center;
+  border-radius: 4px;
+  padding: 10px; /* Optional: Add some padding inside each box */
+  box-sizing: border-box; /* Ensure padding and border are included in the element's total width */
+}
+.selectEntityContainerMain {
+  padding: 20px;
+  /* height: 98vh; */
+  margin: auto;
+  width: 70%;
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+}
+.selectEntityContainer {
+  width: 50%;
+  margin: 5% auto;
+  display: flex;
+  justify-content: center;
+}
+.selectEntityContainerFile {
+  width: 50%;
+  margin: 5% auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  border: 2px solid var(--gray4); /* Add border to each box */
+  border-radius: 4px;
+  padding: 20px;
+}
+.selectEntityContainer .ant-radio-group {
+  display: flex;
+  gap: 30px;
+}
+.selectEntityContainerFile .ant-radio-group {
+  display: flex;
+  gap: 30px;
+}
+.selectEntity img {
+  display: block;
+  /* margin: 0 auto 10px; */
+  width: 150px;
+  height: 130px;
+}
+.bulkStep2Container {
+  width: 70%;
+  margin: auto;
+  box-shadow: 0px 8px 16px 0px #abbed166;
+  border-radius: 4px;
+  padding: 30px;
+}
+.addLeadSubmitBtnWrapper {
+  margin-top: 20px;
+}
+.importRecordsMainDiv .ant-steps {
+  width: 60% !important;
+  display: flex !important;
+  margin: auto !important;
+  margin-top: 100px !important;
+  margin-bottom: 50px !important;
+}
+
+.selectEntitySubmitBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selectEntitySubmitBtn1 {
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+}
+.addBulkCSVLabel {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 23px;
+  text-align: left;
+}
+.addLeadCancelBtn {
+  margin-left: 10px;
+}
+.bulkProgressContainer {
+  border: 1px dashed #89939e;
+  background-color: #f5f7fa;
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+}
+.bulkSubTitle1 {
+  margin-top: 50px;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 16.21px;
+  text-align: left;
+  color: var(--gray2);
+  line-height: 40px;
+}
+.bulkSubTitle2 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 35px;
+  text-align: left;
+  color: var(--gray2);
+  margin-top: 20px;
+}
+.bulkSubTitle3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 30px;
+  text-align: left;
+  color: var(--gray3);
+}
+.bulkSummaryData {
+  color: var(--gray2);
+  font-size: 14px;
+  font-weight: 700;
+}

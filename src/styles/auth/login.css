@@ -1,0 +1,279 @@
+.loginBackWrapper {
+  padding: 10px;
+  min-height: 100vh;
+  max-height: 100%;
+  background-image: url("/assets/personalization/defaultBackImage.png");
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.loginMain {
+  background-color: var(--default-background-color);
+  width: 40%;
+  margin: 3% auto;
+  padding: 5% 3% 3% 3%;
+}
+.loginMiddleDiv {
+  /* margin: 12% 30% 7% 30%; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.loginHeading {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: var(--gray1);
+  margin-bottom: 5px;
+}
+.loginSubHeading {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: var(--gray2);
+}
+.loginWithGoogleBtn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+  gap: 5px;
+}
+.loginHr {
+  color: var(--gray5);
+  background-color: var(--gray5);
+  width: 100%;
+  margin: 15px auto 30px auto;
+  border: 1px solid var(--gray5);
+}
+.loginMidContainer {
+  padding: 5% 20%;
+  width: 100%;
+}
+/* antd css  */
+.loginMidContainer .ant-row {
+  display: unset;
+}
+.loginMidContainer .ant-form-item {
+  margin-bottom: unset;
+}
+.loginMidContainer .ant-input-affix-wrapper {
+  margin-bottom: unset !important;
+}
+.loginSubmitBtn {
+  width: 100%;
+  background-color: var(--neutral-black);
+  margin-bottom: 5px;
+  color: #fff !important;
+}
+/* .loginSubmitBtn:hover {
+  width: 100%;
+  background-color: var(--neutral-black) !important;
+  margin-bottom: 5px;
+  color: #000;
+} */
+.loginForgetPassLink {
+  line-height: 20px;
+  letter-spacing: 0em;
+  color: var(--blue-text);
+  margin-top: 10px;
+  cursor: pointer;
+}
+.loginBottomDiv {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0px;
+  text-align: center;
+  color: black;
+  width: 30%;
+  margin: auto;
+  margin-top: 10px;
+}
+.underlineText {
+  text-decoration: underline;
+  color: var(--gray1);
+}
+.underlineText:hover {
+  color: var(--gray2);
+}
+.loginLinks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.signUpLink {
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+}
+.forgetPassBtnContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.forgetPassBtn1 {
+  box-shadow: 0px 6px 12px 0px #abbed14d;
+  border: 1px solid var(--gray5);
+  border-radius: 4px;
+  height: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+}
+.forgetPassBtn2 {
+  box-shadow: 0px 6px 12px 0px #abbed14d;
+  border: 1px solid var(--gray5);
+  border-radius: 4px;
+  height: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.forgetPassMidContainer {
+  margin-bottom: 30px;
+}
+.marginBottom20 {
+  margin-bottom: 20px !important;
+}
+.passwordValidationChar {
+  font-size: 13px;
+}
+.resetErrorHeading {
+  font-size: 13px;
+  color: var(--gray2);
+}
+.width100 {
+  width: 100%;
+}
+.loginTopDiv img {
+  width: 100px;
+}
+@media only screen and (max-width: 600px) {
+  /* .loginBackWrapper {
+    height: 100%;
+  } */
+  .loginMain {
+    margin: 3% auto;
+    padding: 17% 1%;
+    border-radius: 10px;
+    width: 100%;
+  }
+  .loginTopDiv {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+  }
+  .loginHeading {
+    margin-bottom: 20px;
+    font-size: 22px;
+  }
+  .loginSubHeading {
+    font-size: 11px;
+  }
+  .loginBottomDiv {
+    width: 100%;
+    margin: 50px auto 5% auto;
+  }
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.stepper-header {
+  display: flex;
+  width: 60%;
+  justify-content: center;
+  margin: auto;
+}
+
+.step-container {
+  display: flex;
+  align-items: center;
+}
+
+.step-connector {
+  flex-grow: 1;
+  height: 2px;
+  background-color: #ccc;
+  margin: 0 10px;
+}
+
+.step.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.stepper-content {
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+.stepper-buttons {
+  margin-top: 20px;
+}
+
+.stepper-buttons button {
+  margin: 0 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.stepper-buttons button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.step {
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 0 5px;
+}
+
+.step.active {
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
+}
+.loginFormMarginMiddle {
+  width: 50%;
+}
+
+@media screen and (max-width: 768px) {
+  .loginFormMarginMiddle {
+    width: 100%;
+    margin: 5% auto;
+  }
+}
