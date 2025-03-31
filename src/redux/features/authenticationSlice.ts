@@ -285,6 +285,32 @@ export const updateUserByUserId = createAsyncThunk(
   "authentication/updateUserByUserId",
   async (payload: User) => {
     try {
+      // Log the original payload
+      console.log("Original payload:", JSON.stringify(payload, null, 2));
+      
+      // Get the organization name if available
+      const organizationName = payload.organisation?.name || "";
+      
+      // Clean up the payload to match schema requirements
+      const cleanPayload = {
+        ...payload,
+        // Use organization name as company if available, otherwise empty string
+        company: payload.company || organizationName || "",
+        // Other fields with fallbacks to empty strings
+        address: payload.address || "",
+        companyName: payload.companyName || organizationName || "",
+        companySize: payload.companySize || "",
+        primaryIntension: payload.primaryIntension || "",
+        state: payload.state || "",
+        city: payload.city || "",
+        country: payload.country || "",
+        industry: payload.industry || "",
+        jobTitle: payload.jobTitle || "",
+      };
+
+      // Log the cleaned payload
+      console.log("Clean payload:", JSON.stringify(cleanPayload, null, 2));
+
       const config = {
         headers: {
           Authorization: `Bearer ${
@@ -292,23 +318,26 @@ export const updateUserByUserId = createAsyncThunk(
           }`,
         },
       };
-      console.log("user if from loca storage payload", payload);
+      
+      console.log("API URL:", `${baseUrl}users/update/${payload?.userId}`);
+      
       const response = await axios.put(
         `${baseUrl}users/update/${payload?.userId}`,
-        payload,
+        cleanPayload,
         config
       );
-      if (response.status === 200) {
-        console.log("Success", response?.data);
-      }
+      
+      console.log("Response status:", response.status);
+      console.log("Response data:", JSON.stringify(response.data, null, 2));
+      
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("ERROR", error);
+        console.error("ERROR status:", error.response?.status);
+        console.error("ERROR data:", JSON.stringify(error.response?.data, null, 2));
       } else {
-        console.error("ERROR", error);
+        console.error("Non-Axios ERROR:", error);
       }
-      // You should return a rejected Promise with the error
       throw error;
     }
   }
@@ -334,6 +363,7 @@ export const updateUserProfileById = createAsyncThunk(
       if (response.status === 200) {
         console.log("Success", response?.data);
       }
+      console.log("response.data", response.data);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -891,7 +921,7 @@ const authenticationSlice = createSlice({
       state.loading = false;
       state.updateUserLoader = false;
 
-      message.error("Error at updating user Info");
+      message.error("Error at updating user Info 1");
     });
     // Update profile
     builder.addCase(updateUserProfileById.pending, (state) => {
@@ -906,7 +936,7 @@ const authenticationSlice = createSlice({
     builder.addCase(updateUserProfileById.rejected, (state) => {
       state.loading = false;
       state.updateUserLoader = false;
-      message.error("Error at updating user Info");
+      message.error("Error at updating user Info 2");
     });
     // For no admin
 
@@ -923,7 +953,7 @@ const authenticationSlice = createSlice({
     });
     builder.addCase(updateUserByUserIdExceptAdmin.rejected, (state) => {
       state.loading = false;
-      message.error("Error at updating user Info");
+      message.error("Error at updating user Info 3");
     });
 
     // Invite team mates
