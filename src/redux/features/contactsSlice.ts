@@ -209,7 +209,7 @@ export const addContact = createAsyncThunk(
 
 export const getContactById = createAsyncThunk(
   "contacts/getContactById",
-  async (contactId: string) => {
+  async (contactId: string, { rejectWithValue }) => {
     try {
       const config = {
         headers: {
@@ -228,13 +228,13 @@ export const getContactById = createAsyncThunk(
       }
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error("ERROR", error);
-      } else {
-        console.error("ERROR", error);
+      console.error("Error in getContactById:", error);
+      // If it's an axios error, extract the response data
+      if (axios.isAxiosError(error) && error.response) {
+        return rejectWithValue(error.response.data);
       }
-      // You should return a rejected Promise with the error
-      throw error;
+      // Otherwise return a generic error message
+      return rejectWithValue({ message: "Failed to fetch contact details. Please try again." });
     }
   }
 );

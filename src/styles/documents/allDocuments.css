@@ -1,0 +1,108 @@
+.document-upload-container {
+  padding: 20px;
+}
+
+.google-connection-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.google-icon {
+  font-size: 28px;
+  color: #db4437;
+  margin-bottom: 10px;
+}
+
+.google-connection-message {
+  margin-top: 10px;
+  color: #666;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+}
+
+.selected-file {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #f6f6f6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-button {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.delete-icon {
+  color: #ff4d4f;
+}
+
+.auth-callback-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.auth-back-button {
+  padding: 8px 16px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.auth-back-button:hover {
+  background-color: #40a9ff;
+}
+
+.upload-form {
+  width: 100%;
+}
+
+.file-upload-container {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  margin-bottom: 10px;
+}
+
+.file-upload-item {
+  width: 100%;
+}
+
+.upload-button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .document-upload-container {
+    padding: 10px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+} 

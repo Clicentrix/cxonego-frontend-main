@@ -54,6 +54,7 @@ import { fetchAllAuditsByModuleId } from "../../redux/features/auditSlice";
 import AuditWindow from "../audit/auditWindow";
 import AllRelatedActivities from "../activities/relatedActivitiesListView";
 import AllRelatedNotes from "../notes/relatedNotesListView";
+import RelatedDocumentsListView from "../documents/RelatedDocumentsListView";
 import TextArea from "antd/es/input/TextArea";
 import { fetchAllSalesPersonByUserId } from "../../redux/features/organizationSlice";
 
@@ -542,6 +543,12 @@ const OneOpportunityById: React.FC = () => {
                 <AllRelatedNotes
                   moduleName={"opportunity"}
                   moduleId={opportunity?.opportunityId}
+                />
+              </>
+            ) : relatedView === "DOCUMENTS" ? (
+              <>
+                <RelatedDocumentsListView
+                  contactId={opportunity?.contact}
                 />
               </>
             ) : (

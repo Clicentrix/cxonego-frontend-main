@@ -453,3 +453,31 @@
     margin-bottom: unset;
   }
 }
+
+.error-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.error-message-container h3 {
+  color: #ff4d4f;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.error-message-container p {
+  margin-bottom: 1.5rem;
+  color: #595959;
+}
+
+.error-message-container button {
+  margin-top: 1rem;
+}

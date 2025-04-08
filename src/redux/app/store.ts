@@ -12,6 +12,7 @@ import appointmentSlice from "../features/calendarSlice";
 import organisationSlice from "../features/organizationSlice";
 import noteSlice from "../features/noteSlice";
 import subscriptionSlice from "../features/subscriptionSlice";
+import documentSlice from "../features/documentSlice";
 
 const rootReducer = combineReducers({
   authentication: authenticationSlice,
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   organisations: organisationSlice,
   notes: noteSlice,
   subscriptions: subscriptionSlice,
+  documents: documentSlice,
 });
 
 const store = configureStore({

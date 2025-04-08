@@ -859,6 +859,7 @@ export const conactsRelatedViewOptions = [
   { value: "OPPORTUNITIES", label: "Opportunities" },
   { value: "ACTIVITIES", label: "Activities" },
   { value: "NOTES", label: "Notes" },
+  { value: "DOCUMENTS", label: "Documents" },
 ];
 
 // OPPORTUNITY
@@ -947,6 +948,7 @@ export const opportunitiesRelatedViewOptions = [
   { value: "SELECT", label: "select related view" },
   { value: "ACTIVITIES", label: "Activities" },
   { value: "NOTES", label: "Notes" },
+  { value: "DOCUMENTS", label: "Documents" },
 ];
 
 export const wonReasonOptions = [

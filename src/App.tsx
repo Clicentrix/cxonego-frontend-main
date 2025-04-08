@@ -7,11 +7,39 @@ import { BrowserRouter } from "react-router-dom";
 import { LoggedOutRouteConfig } from "./routes/RouteConfig";
 import { auth } from "./services/firebaseConfig";
 import { Spin } from "antd";
+import DebugConsole from "./components/debug/DebugConsole";
+
+// A global flag to enable/disable debugging tools
+const DEBUG_MODE = true;
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Loading state
 
-  
+  // Add a global error boundary
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      const originalOnError = window.onerror;
+      
+      window.onerror = (message, source, lineno, colno, error) => {
+        console.error('GLOBAL ERROR CAUGHT:', { message, source, lineno, colno });
+        console.error('Error stack:', error?.stack);
+        
+        // Call the original handler if it exists
+        if (typeof originalOnError === 'function') {
+          return originalOnError(message, source, lineno, colno, error);
+        }
+        
+        return false;
+      };
+      
+      // Log app initialization
+      console.log('=== DEBUG MODE ENABLED ===');
+      console.log('App initialized at:', new Date().toISOString());
+      console.log('Press Ctrl+Alt+D to toggle debug console');
+    }
+  }, []);
+
   useEffect(() => {
     if (localStorage.getItem("loggedIn") === "true") {
       setIsLoggedIn(true);
@@ -71,7 +99,12 @@ function App() {
 
   if (isLoading) {
     // Show a loading screen until localStorage is checked
-    return <Spin spinning={isLoading} tip="Loading..."></Spin>;
+    return (
+      <>
+        <Spin spinning={isLoading} tip="Loading..."></Spin>
+        {DEBUG_MODE && <DebugConsole />}
+      </>
+    );
   }
 
   else if (!isLoggedIn && !isLoading) {
@@ -81,6 +114,7 @@ function App() {
           <Spin spinning={isLoading} tip="Loading...">
             <LoggedOutRouteConfig />
           </Spin>
+          {DEBUG_MODE && <DebugConsole />}
         </BrowserRouter>
       </Provider>
     );
@@ -92,6 +126,7 @@ function App() {
             <Spin spinning={isLoading} tip="Loading...">
               <LayoutComponent />
             </Spin>
+            {DEBUG_MODE && <DebugConsole />}
           </BrowserRouter>
         </Provider>
       </>
