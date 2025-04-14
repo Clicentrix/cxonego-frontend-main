@@ -9,6 +9,8 @@ import {
   getContactDocuments,
   getGoogleAuthUrl,
   uploadDocument,
+  getGoogleReconnectUrl,
+  disconnectGoogleDrive,
 } from "../../services/documentService";
 
 // Initial empty document
@@ -69,17 +71,13 @@ export const checkGoogleConnection = createAsyncThunk(
   "documents/checkGoogleConnection",
   async () => {
     try {
-      // Bypass the actual connection check and always return connected: true
-      console.log("[OVERRIDE] Bypassing Google Drive connection check, returning connected: true");
-      return { connected: true };
-      
-      // Original code below - commented out
-      // const response = await checkGoogleDriveConnection();
-      // return response;
+      // Make the actual connection check to Google Drive
+      const response = await checkGoogleDriveConnection();
+      console.log("Google Drive connection check:", response);
+      return response;
     } catch (error) {
       console.error("Error checking Google connection:", error);
-      // Also return connected: true here to ensure we bypass the check
-      return { connected: true };
+      return { connected: false };
     }
   }
 );
@@ -94,6 +92,62 @@ export const getGoogleAuth = createAsyncThunk(
     } catch (error) {
       console.error("Error getting Google auth URL:", error);
       throw error;
+    }
+  }
+);
+
+// Get Google Reconnect URL (forces consent screen)
+export const getGoogleReconnect = createAsyncThunk(
+  "documents/getGoogleReconnect",
+  async () => {
+    try {
+      const response = await getGoogleReconnectUrl();
+      return response;
+    } catch (error) {
+      console.error("Error getting Google reconnect URL:", error);
+      throw error;
+    }
+  }
+);
+
+// Disconnect from Google Drive
+export const disconnectGoogle = createAsyncThunk(
+  "documents/disconnectGoogle",
+  async (_, { dispatch }) => {
+    try {
+      const response = await disconnectGoogleDrive();
+      
+      console.log("Google Drive disconnect response:", response);
+      
+      if (response.success) {
+        // Show success message
+        message.success(response.message || "Disconnected from Google Drive");
+        
+        // Clear Google Drive connection flag in localStorage
+        localStorage.setItem('googleDriveConnected', 'false');
+        
+        // Refresh connection status
+        dispatch(checkGoogleConnection());
+        
+        return response;
+      } else {
+        // Show error message
+        message.error(response.error || "Failed to disconnect from Google Drive");
+        
+        // For specific error types like endpoint not found, provide more info
+        if (response.status === 404) {
+          console.warn("Google Drive disconnect endpoint not found:", response);
+        }
+        
+        return response;
+      }
+    } catch (error) {
+      console.error("Error disconnecting from Google Drive:", error);
+      message.error("Failed to disconnect from Google Drive");
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      };
     }
   }
 );
@@ -119,24 +173,15 @@ export const getContactDocumentsThunk = createAsyncThunk(
   "documents/getContactDocuments",
   async ({ contactId, params }: { contactId: string; params: DocumentParams }) => {
     try {
-      console.log('Fetching documents with params:', { contactId, params });
       const response = await getContactDocuments(contactId, params);
-      console.log('API response for documents:', response);
       
       // Handle the response format directly from the service
-      // The service already does the transformation for us
       const documents = response.documents || [];
       const pagination = response.pagination || {
         page: params.page || 1,
         limit: params.limit || 10,
         total: 0
       };
-      
-      console.log('Processed documents:', {
-        count: documents.length,
-        pagination,
-        sample: documents.length > 0 ? documents[0] : undefined
-      });
       
       return {
         documents: documents,
@@ -206,6 +251,22 @@ const documentSlice = createSlice({
       state.isGoogleConnected = false;
     });
 
+    // Disconnect Google Drive
+    builder.addCase(disconnectGoogle.pending, (state) => {
+      state.checkingGoogleConnection = true; // Reuse the same loading state
+    });
+    builder.addCase(disconnectGoogle.fulfilled, (state, action) => {
+      state.checkingGoogleConnection = false;
+      // Set connection status to false on successful disconnect
+      if (action.payload && action.payload.success) {
+        state.isGoogleConnected = false;
+      }
+    });
+    builder.addCase(disconnectGoogle.rejected, (state) => {
+      state.checkingGoogleConnection = false;
+      // Keep existing connection status on error - will be verified by checkConnection later
+    });
+
     // Upload Document
     builder.addCase(uploadDocumentThunk.pending, (state) => {
       state.addDocumentLoader = true;
@@ -219,11 +280,9 @@ const documentSlice = createSlice({
 
     // Get Contact Documents
     builder.addCase(getContactDocumentsThunk.pending, (state) => {
-      console.log('Documents fetch pending');
       state.getDocumentLoader = true;
     });
     builder.addCase(getContactDocumentsThunk.fulfilled, (state, action) => {
-      console.log('Documents fetch fulfilled:', action.payload);
       state.getDocumentLoader = false;
       
       // Always ensure we have an array, even if empty
@@ -239,12 +298,6 @@ const documentSlice = createSlice({
         page: action.payload.page || 1,
         total: state.totalDocuments,
       };
-      
-      console.log('Updated documents state:', { 
-        count: state.documents.length,
-        total: state.totalDocuments,
-        pagination: state.pagination
-      });
     });
     builder.addCase(getContactDocumentsThunk.rejected, (state, action) => {
       console.error('Documents fetch rejected:', action.error);

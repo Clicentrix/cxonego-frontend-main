@@ -43,15 +43,28 @@ import AllRelatedActivities from "../activities/relatedActivitiesListView";
 import AllRelatedNotes from "../notes/relatedNotesListView";
 import RelatedDocumentsListView from "../documents/RelatedDocumentsListView";
 import { fetchAllSalesPersonByUserId } from "../../redux/features/organizationSlice";
+import { extractContactId } from "../../utils/contactUtils";
 
 const OneContactById: React.FC = () => {
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const paramsContactId = useParams();
-  const contactId = paramsContactId?.contactId;
+  
+  // Validate and extract contactId with error detection
+  const rawContactId = paramsContactId?.contactId;
+  let contactId = '';
+  
+  // Special handling for the "[object Object]" string which indicates a bug
+  if (rawContactId === '[object Object]') {
+    console.error('=== DEBUG: Invalid contact ID format "[object Object]" detected ===');
+    contactId = '';
+  } else {
+    contactId = extractContactId(rawContactId);
+  }
   
   console.log('=== DEBUG: OneContactById RENDER ===');
-  console.log('contactId from URL:', contactId);
+  console.log('Raw contactId from URL:', rawContactId);
+  console.log('Sanitized contactId:', contactId);
   
   const { contact, addContactLoader, getContactLoader, editable } =
     useAppSelector((state: RootState) => state.contacts);
@@ -64,6 +77,13 @@ const OneContactById: React.FC = () => {
 
   const [relatedView, setRelatedView] = useState<string>("SELECT");
   const [error, setError] = useState<string | null>(null);
+  
+  // Check for invalid contactId immediately
+  useEffect(() => {
+    if (rawContactId === '[object Object]') {
+      setError('Invalid contact ID format. This may happen when clicking on a contact link from an invalid source.');
+    }
+  }, [rawContactId]);
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -501,10 +521,15 @@ const OneContactById: React.FC = () => {
                   <>
                     {(() => {
                       if (contact?.contactId) {
-                        console.log('=== DEBUG: Rendering Documents view with contactId:', contact.contactId);
+                        console.log('=== DEBUG: Rendering Documents view with contact object:', contact);
+                        
+                        // Use the utility function to extract the contactId
+                        const safeContactId = extractContactId(contact);
+                        console.log('=== DEBUG: Extracted contactId using utility:', safeContactId);
+                        
                         return (
                           <RelatedDocumentsListView
-                            contactId={contact.contactId}
+                            contactId={safeContactId}
                           />
                         );
                       } else {

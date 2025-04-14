@@ -8,6 +8,7 @@ import { LoggedOutRouteConfig } from "./routes/RouteConfig";
 import { auth } from "./services/firebaseConfig";
 import { Spin } from "antd";
 import DebugConsole from "./components/debug/DebugConsole";
+import DebugViewer from "./components/debug/DebugViewer";
 
 // A global flag to enable/disable debugging tools
 const DEBUG_MODE = true;
@@ -37,6 +38,7 @@ function App() {
       console.log('=== DEBUG MODE ENABLED ===');
       console.log('App initialized at:', new Date().toISOString());
       console.log('Press Ctrl+Alt+D to toggle debug console');
+      console.log('Press Ctrl+Alt+V to toggle debug viewer');
     }
   }, []);
 
@@ -103,6 +105,7 @@ function App() {
       <>
         <Spin spinning={isLoading} tip="Loading..."></Spin>
         {DEBUG_MODE && <DebugConsole />}
+        {DEBUG_MODE && <DebugViewer />}
       </>
     );
   }
@@ -115,6 +118,7 @@ function App() {
             <LoggedOutRouteConfig />
           </Spin>
           {DEBUG_MODE && <DebugConsole />}
+          {DEBUG_MODE && <DebugViewer />}
         </BrowserRouter>
       </Provider>
     );
@@ -127,6 +131,7 @@ function App() {
               <LayoutComponent />
             </Spin>
             {DEBUG_MODE && <DebugConsole />}
+            {DEBUG_MODE && <DebugViewer />}
           </BrowserRouter>
         </Provider>
       </>

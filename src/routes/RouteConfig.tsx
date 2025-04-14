@@ -27,6 +27,9 @@ import HelpAndSupport from "../pages/helpAndSupport/helpAndSupport";
 import PrivacyPolicy from "../pages/helpAndSupport/privacyPolicy";
 import TermsAndConditions from "../pages/helpAndSupport/termsAndConditions";
 import GoogleAuthCallback from "../components/documents/GoogleAuthCallback";
+import AuthSuccess from "../pages/auth/AuthSuccess";
+import AuthError from "../pages/auth/AuthError";
+import GoogleDrivePage from "../pages/integrations/GoogleDrivePage";
 
 export function LoggedOutRouteConfig() {
   return (
@@ -42,6 +45,8 @@ export function LoggedOutRouteConfig() {
         <Route path="/sign-up?emailverified=true&subscription_status==INACTIVE" element={<SignUpPage />} />
         <Route path="/forget-password" element={<ForgetPassPage />} />
         <Route path="/document/auth/google/callback" element={<GoogleAuthCallback />} />
+        <Route path="/auth-success" element={<AuthSuccess />} />
+        <Route path="/auth-error" element={<AuthError />} />
         <Route path="*" element={<LoginPage />} />
       </Routes>
     </>
@@ -85,6 +90,9 @@ export function LoggedInRouteConfig() {
         <Route path="/profile/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/profile/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/document/auth/google/callback" element={<GoogleAuthCallback />} />
+        <Route path="/auth-success" element={<AuthSuccess />} />
+        <Route path="/auth-error" element={<AuthError />} />
+        <Route path="/profile/google-drive" element={<GoogleDrivePage />} />
       </Routes>
     </>
   );

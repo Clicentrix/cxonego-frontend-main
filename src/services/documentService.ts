@@ -1,5 +1,13 @@
 import axios from "axios";
 import { auth } from "./firebaseConfig";
+import debugLog from "../utils/debugLog";
+
+// Extend Window interface to include _env_ property
+declare global {
+  interface Window {
+    _env_?: Record<string, string>;
+  }
+}
 
 // Add a debug flag to enable/disable detailed logging
 const DEBUG = true;
@@ -50,19 +58,47 @@ const mockDocuments = [
   }
 ];
 
-const BASE_URL = "http://localhost:8000/api/v1";
+// Safely get environment variables in a browser-compatible way
+const getEnvVariable = (name: string, defaultValue: string): string => {
+  // Check if window._env_ exists (sometimes used for runtime environment variables)
+  if (typeof window !== 'undefined' && window._env_ && window._env_[name]) {
+    return window._env_[name];
+  }
+  
+  // Check if process.env is available (will work in development with webpack/vite)
+  try {
+    // @ts-ignore - process might not be defined in all environments
+    if (typeof process !== 'undefined' && process.env && process.env[name]) {
+      // @ts-ignore
+      return process.env[name];
+    }
+  } catch (e) {
+    console.warn(`Error accessing process.env.${name}:`, e);
+  }
+  
+  // Fallback to default value
+  return defaultValue;
+};
+
+// API configuration
+// Use environment variable if available, or fall back to backend URL in development
+const BASE_URL = getEnvVariable('REACT_APP_API_URL', 'http://localhost:8000/api/v1');
 const accessToken = localStorage.getItem("accessToken");
 
-// Debug logger function
-const debugLog = (message: string, data?: any) => {
+// Debug logger function - replaced with the shared utility
+const debugLog2 = (message: string, data?: any) => {
   if (DEBUG) {
-    console.log(`[DocumentService] ${message}`);
-    if (data) console.log(data);
+    debugLog(`[DocumentService] ${message}`, data, 'DocumentService');
   }
 };
 
+/**
+ * Validates if the string is a valid access token
+ * @param str The string to validate
+ * @returns True if the string is a valid access token
+ */
 function isAccessToken(str: string | null) {
-  debugLog(`Access token check: ${str ? 'Has token' : 'No token'}`);
+  debugLog2(`Access token check: ${str ? 'Has token' : 'No token'}`);
   return typeof str === "string" && str !== null;
 }
 
@@ -101,79 +137,280 @@ export interface UploadDocumentPayload {
   contactId: string;
 }
 
-// Document Service API functions
-export const getGoogleAuthUrl = async () => {
-  debugLog('Requesting Google Auth URL');
+/**
+ * Gets the url for connecting to Google Drive
+ * Endpoint: GET /api/v1/document/auth/google
+ * @param returnToContactId Optional contact ID to return to after authentication
+ * @returns Object with url
+ */
+export const getGoogleAuthUrl = async (returnToContactId?: string) => {
   try {
-    const config = {
+    const userId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+    
+    if (!userId) {
+      debugLog2('getGoogleAuthUrl - No userId found in localStorage', null);
+      return { error: "User ID not found", errorCode: "NO_USER_ID" };
+    }
+    
+    if (!isAccessToken(accessToken)) {
+      debugLog2('getGoogleAuthUrl - Invalid or missing access token', { hasToken: !!accessToken });
+      return { error: "Invalid access token", errorCode: "INVALID_TOKEN" };
+    }
+    
+    // Set up the query parameters
+    const params = new URLSearchParams();
+    if (returnToContactId) {
+      params.append('returnToContactId', returnToContactId);
+    }
+    params.append('userId', userId);
+
+    // Construct the API endpoint using BASE_URL
+    const endpoint = `${BASE_URL}/document/auth/google`;
+    
+    // Log the request
+    debugLog2('getGoogleAuthUrl - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
+    
+    const response = await axios.get(`${endpoint}?${params.toString()}`, {
       headers: {
-        Authorization: `Bearer ${
-          isAccessToken(accessToken) ? accessToken : undefined
-        }`,
+        Authorization: `Bearer ${accessToken}`,
       },
-    };
-    debugLog('GET request to /document/auth/google', config);
-    const response = await axios.get(`${BASE_URL}/document/auth/google`, config);
-    debugLog('Google Auth URL Response:', response.data);
+    });
+    
+    // Log the response
+    debugLog2('getGoogleAuthUrl - Response received:', response.data);
+    
+    // For debugging - log the actual response data
+    if (typeof response.data === 'object' && response.data.data) {
+      debugLog2('Response data:', response.data.data);
+    }
+    
+    // Handle different response formats:
+    // 1. Direct URL string
+    if (typeof response.data === 'string') {
+      return response.data;
+    }
+    
+    // 2. Object with URL property
+    if (response.data && typeof response.data === 'object') {
+      // Check for common URL properties
+      const url = response.data.url || response.data.authUrl || response.data.redirectUrl;
+      if (url && typeof url === 'string') {
+        return url;
+      }
+      
+      // Check for data property containing the URL (common API pattern)
+      if (response.data.data) {
+        // If data property is a string, it might be the URL directly
+        if (typeof response.data.data === 'string') {
+          return response.data.data;
+        }
+        
+        // If data is an object, look for URL properties
+        if (typeof response.data.data === 'object') {
+          const dataUrl = response.data.data.url || 
+                         response.data.data.authUrl || 
+                         response.data.data.redirectUrl;
+          if (dataUrl && typeof dataUrl === 'string') {
+            return dataUrl;
+          }
+        }
+      }
+    }
+    
+    // If we get here, we have an unexpected response format, but we'll try to be lenient
+    debugLog2('getGoogleAuthUrl - Unexpected response format:', response.data);
+    
+    // As a last resort, return the entire response so the component can try to handle it
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("ERROR", error);
-      debugLog('Axios Error in getGoogleAuthUrl:', { 
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-    } else {
-      console.error("ERROR", error);
-      debugLog('Unknown Error in getGoogleAuthUrl:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      // Handle specific status codes
+      if (error.response.status === 404) {
+        debugLog2('getGoogleAuthUrl - Endpoint not found (404)', 
+          { url: error.config?.url, message: error.message });
+        throw new Error('Google authentication endpoint not found. Please check API configuration.');
+      }
+      
+      // Handle other API errors with response data
+      debugLog2('getGoogleAuthUrl - API error response:', 
+        { status: error.response.status, data: error.response.data });
+      throw new Error(error.response.data?.message || 'Failed to get Google authentication URL');
     }
+    
+    // Handle network or other errors
+    debugLog2('getGoogleAuthUrl - Error:', { 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    });
     throw error;
   }
 };
 
+/**
+ * Checks if the user is connected to Google Drive
+ * Endpoint: GET /api/v1/document/auth/google/connection
+ * @returns Object with connected status
+ */
 export const checkGoogleDriveConnection = async () => {
-  debugLog('Checking Google Drive Connection');
+  debugLog2('Checking Google Drive Connection');
   try {
+    // Get the current user ID from localStorage
+    const userId = localStorage.getItem("userId");
+    
+    // Make sure the user ID is available
+    if (!userId) {
+      debugLog2('User ID not found when checking Google Drive connection');
+      return { connected: false, message: 'User not authenticated' };
+    }
+    
+    // Ensure we have a valid access token
+    if (!isAccessToken(accessToken)) {
+      debugLog2('Invalid or missing access token when checking Google Drive connection');
+      return { connected: false, message: 'Missing or invalid access token' };
+    }
+    
+    debugLog2('Preparing config for Google Drive connection check', {
+      userId,
+      hasToken: !!accessToken
+    });
+    
     const config = {
       headers: {
-        Authorization: `Bearer ${
-          isAccessToken(accessToken) ? accessToken : undefined
-        }`,
+        Authorization: `Bearer ${accessToken}`,
       },
+      // Pass the userId as a query parameter to ensure backend gets it
+      params: {
+        userId: userId
+      }
     };
-    debugLog('GET request to /document/google/connection', config);
-    const response = await axios.get(`${BASE_URL}/document/google/connection`, config);
-    debugLog('Google Drive Connection Response:', response.data);
-    return response.data;
+    
+    // Construct full endpoint URL for improved debugging
+    const fullUrl = `${BASE_URL}/document/auth/google/connection`;
+    debugLog2('GET request to check Google Drive connection', { 
+      url: fullUrl,
+      config: { params: config.params } 
+    });
+    
+    const response = await axios.get(fullUrl, config);
+    debugLog2('Google Drive Connection Response:', response.data);
+    
+    // Handle different response formats
+    if (response.data && typeof response.data === 'object') {
+      // If it's an object with 'connected' property
+      if ('connected' in response.data) {
+        return response.data;
+      } 
+      // If it's an object with 'data' property that has 'connected'
+      else if (response.data.data && 'connected' in response.data.data) {
+        return {
+          connected: response.data.data.connected,
+          message: response.data.message || '',
+          data: response.data.data
+        };
+      }
+    }
+    
+    // Default response if we can't find a clear connected status
+    debugLog2('Invalid response format from Google Drive connection check', response.data);
+    return { connected: false, message: 'Invalid response format', rawResponse: response.data };
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("ERROR", error);
-      debugLog('Axios Error in checkGoogleDriveConnection:', { 
+      console.error("ERROR in checkGoogleDriveConnection:", error);
+      debugLog2('Axios Error in checkGoogleDriveConnection:', { 
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
       });
-    } else {
-      console.error("ERROR", error);
-      debugLog('Unknown Error in checkGoogleDriveConnection:', error);
+      
+      // Provide specific error messages for common issues
+      if (error.response?.status === 401) {
+        return { 
+          connected: false, 
+          message: 'Authentication failed. Please log in again.',
+          error: error.message,
+          status: error.response?.status
+        };
+      } else if (error.response?.status === 403) {
+        return { 
+          connected: false, 
+          message: 'You do not have permission to check Google Drive connection.',
+          error: error.message,
+          status: error.response?.status
+        };
+      } else if (error.response?.status === 404) {
+        // For 404 errors, provide detailed context for troubleshooting
+        const fullUrl = `${BASE_URL}/document/auth/google/connection`;
+        debugLog2('URL not found (404) during connection check:', {
+          url: fullUrl,
+          userId: localStorage.getItem("userId")
+        });
+        
+        return { 
+          connected: false, 
+          message: 'API endpoint for Google Drive connection check not found.',
+          detailedMessage: `The backend endpoint (${fullUrl}) does not exist. This is typically a server configuration issue. Please ensure your backend has implemented this endpoint.`,
+          error: error.message,
+          status: error.response?.status,
+          endpoint: fullUrl
+        };
+      }
+      
+      // Return more specific error information
+      return { 
+        connected: false, 
+        message: error.response?.data?.message || error.message,
+        error: error.message,
+        status: error.response?.status,
+        details: error.response?.data || {}
+      };
     }
-    return { connected: false };
+    
+    console.error("ERROR in checkGoogleDriveConnection:", error);
+    debugLog2('Unknown Error in checkGoogleDriveConnection:', error);
+    return { 
+      connected: false, 
+      message: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
   }
 };
 
+/**
+ * Uploads a document to Google Drive and associates it with a contact
+ * Endpoint: POST /api/v1/document/upload/:contactId
+ * @param payload The upload payload containing file, description, and contactId
+ * @returns The uploaded document data
+ */
 export const uploadDocument = async (payload: UploadDocumentPayload) => {
-  debugLog('Uploading Document:', {
+  debugLog2('Uploading Document', {
     fileName: payload.file.name,
     fileSize: payload.file.size,
     contactId: payload.contactId
   });
   try {
+    // Validate user authentication first
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      debugLog2('User ID not found when uploading document');
+      throw new Error('User not authenticated. Please log in first.');
+    }
+    
+    // Validate access token
+    if (!isAccessToken(accessToken)) {
+      debugLog2('Invalid or missing access token when uploading document');
+      throw new Error('Authentication token is missing or invalid. Please log in again.');
+    }
+    
+    // Verify Google Drive connection
+    const connectionStatus = await checkGoogleDriveConnection();
+    if (!connectionStatus.connected) {
+      debugLog2('Google Drive not connected when attempting upload', connectionStatus);
+      throw new Error('Google Drive is not connected. Please connect to Google Drive first.');
+    }
+    
     const config = {
       headers: {
-        Authorization: `Bearer ${
-          isAccessToken(accessToken) ? accessToken : undefined
-        }`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "multipart/form-data",
       },
     };
@@ -182,43 +419,96 @@ export const uploadDocument = async (payload: UploadDocumentPayload) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("description", description);
+    formData.append("userId", userId); // Ensure userId is included in the form data
     
-    debugLog('POST request to /document/upload/', {
-      url: `${BASE_URL}/document/upload/${contactId}`,
-      headers: config.headers,
-      fileInfo: {
-        name: file.name,
-        type: file.type,
-        size: file.size
-      }
+    // Log the upload request
+    debugLog2('Uploading document to Google Drive via API', {
+      fileName: file.name,
+      fileSize: file.size,
+      contactId,
+      userId
     });
     
-    const response = await axios.post(
-      `${BASE_URL}/document/upload/${contactId}`,
-      formData,
-      config
-    );
+    // Use the correct endpoint URL
+    const uploadUrl = `${BASE_URL}/document/upload/${contactId}`;
     
-    debugLog('Document Upload Response:', response.data);
+    debugLog2('POST request to upload document', {
+      url: uploadUrl,
+      fileSize: file.size,
+      hasUserId: !!userId
+    });
+    
+    const response = await axios.post(uploadUrl, formData, config);
+    
+    // Log success response
+    debugLog2('Document uploaded successfully to Google Drive', {
+      fileName: file.name,
+      googleLink: response.data?.googleDriveLink || 'No link returned',
+      documentId: response.data?.documentId || 'No ID returned'
+    });
+    
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("ERROR", error);
-      debugLog('Axios Error in uploadDocument:', { 
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-    } else {
-      console.error("ERROR", error);
-      debugLog('Unknown Error in uploadDocument:', error);
+    debugLog2("Error uploading document to Google Drive:", error);
+    
+    // Store error information for debugging
+    if (error instanceof Error) {
+      localStorage.setItem('document_upload_error', error.message);
+      localStorage.setItem('document_upload_error_time', new Date().toISOString());
     }
+    
+    if (axios.isAxiosError(error)) {
+      // More detailed error handling
+      const statusCode = error.response?.status;
+      const errorMessage = error.response?.data?.message || error.message;
+      
+      debugLog2(`Upload failed with status ${statusCode}: ${errorMessage}`, {
+        response: error.response?.data,
+        headers: error.response?.headers
+      });
+      
+      // Handle specific error cases
+      if (statusCode === 401) {
+        // Unauthorized - token may have expired
+        debugLog2('Authentication error during upload. You may need to reconnect to Google Drive.');
+        throw new Error('Authentication failed. Please log in again or reconnect to Google Drive.');
+      } else if (statusCode === 403) {
+        // Forbidden - permission issues
+        debugLog2('Permission error during upload. You may need to reconnect to Google Drive with proper permissions.');
+        throw new Error('You do not have permission to upload to this Google Drive account.');
+      } else if (statusCode === 413) {
+        // Payload too large
+        debugLog2('File is too large for upload.');
+        throw new Error('File is too large. Maximum file size is 5MB.');
+      } else if (statusCode === 400) {
+        // Bad request - might be Google Drive connection issue
+        debugLog2('Bad request error during upload. Might be Google Drive connection issue.');
+        throw new Error('Upload failed: ' + errorMessage + '. You may need to reconnect to Google Drive.');
+      } else if (statusCode === 404) {
+        // URL not found - might be wrong endpoint
+        debugLog2('Endpoint not found (404) during upload:', {
+          url: `${BASE_URL}/document/upload/${payload.contactId}`,
+          contactId: payload.contactId
+        });
+        throw new Error('Document upload endpoint not found. Please contact support.');
+      }
+      
+      throw new Error('Document upload failed: ' + errorMessage);
+    }
+    
     throw error;
   }
 };
 
+/**
+ * Gets a list of documents for a specific contact
+ * Endpoint: GET /api/v1/document/contact/:contactId
+ * @param contactId The ID of the contact
+ * @param params Pagination and search parameters
+ * @returns List of documents and pagination information
+ */
 export const getContactDocuments = async (contactId: string, params: DocumentParams) => {
-  debugLog('Fetching Contact Documents:', { contactId, params });
+  debugLog2('Fetching Contact Documents', { contactId });
   try {
     const config = {
       headers: {
@@ -231,13 +521,11 @@ export const getContactDocuments = async (contactId: string, params: DocumentPar
     const searchParam = params.search ? `&search=${params.search}` : '';
     const url = `${BASE_URL}/document/contact/${contactId}?page=${params.page || 1}&limit=${params.limit || 10}${searchParam}`;
 
-    debugLog('GET request to ' + url, config);
+    debugLog2('GET request to fetch contact documents', { url });
     const response = await axios.get(url, config);
-    debugLog('Raw API Response:', response);
     
     // Transform the response data to ensure it matches the expected format
     let transformedData;
-    debugLog('Response Data:', response.data);
     
     if (response.data?.data?.data) {
       // Handle nested data.data structure
@@ -270,22 +558,11 @@ export const getContactDocuments = async (contactId: string, params: DocumentPar
       };
     }
     
-    debugLog('Transformed Response:', transformedData);
+    debugLog2('Transformed document data', transformedData);
     return transformedData;
     
   } catch (error) {
-    debugLog('Error in getContactDocuments:', error);
-    if (axios.isAxiosError(error)) {
-      console.error("ERROR", error);
-      debugLog('Axios Error in getContactDocuments:', { 
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-    } else {
-      console.error("ERROR", error);
-      debugLog('Unknown Error in getContactDocuments:', error);
-    }
+    debugLog2("Error fetching contact documents:", error);
     
     // Return mock data as fallback with proper structure
     const fallbackData = {
@@ -297,13 +574,19 @@ export const getContactDocuments = async (contactId: string, params: DocumentPar
       }
     };
     
-    debugLog('Returning fallback data:', fallbackData);
+    debugLog2('Returning mock data as fallback', fallbackData);
     return fallbackData;
   }
 };
 
+/**
+ * Deletes a document by ID
+ * Endpoint: DELETE /api/v1/document/:documentId
+ * @param documentId The ID of the document to delete
+ * @returns Success response
+ */
 export const deleteDocument = async (documentId: string) => {
-  debugLog('Deleting Document:', { documentId });
+  debugLog2('Deleting Document:', { documentId });
   try {
     const config = {
       headers: {
@@ -313,27 +596,229 @@ export const deleteDocument = async (documentId: string) => {
       },
     };
     
-    debugLog('DELETE request to /document/' + documentId, config);
+    debugLog2('DELETE request to /document/' + documentId, config);
     
     const response = await axios.delete(
       `${BASE_URL}/document/${documentId}`,
       config
     );
     
-    debugLog('Delete Document Response:', response.data);
+    debugLog2('Delete Document Response:', response.data);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error("ERROR", error);
-      debugLog('Axios Error in deleteDocument:', { 
+      debugLog2('Axios Error in deleteDocument:', { 
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
       });
     } else {
       console.error("ERROR", error);
-      debugLog('Unknown Error in deleteDocument:', error);
+      debugLog2('Unknown Error in deleteDocument:', error);
     }
     throw error;
+  }
+};
+
+/**
+ * Gets the Google authentication URL that forces a reconnection (shows consent screen)
+ * Endpoint: GET /api/v1/document/auth/google/reconnect
+ * @param returnToContactId Optional contact ID to return to after authentication
+ * @returns The URL to redirect the user for Google reconnection with forced consent
+ */
+export const getGoogleReconnectUrl = async (returnToContactId?: string) => {
+  try {
+    const userId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+    
+    if (!userId) {
+      debugLog2('getGoogleReconnectUrl - No userId found in localStorage', null);
+      return { error: "User ID not found", errorCode: "NO_USER_ID" };
+    }
+    
+    if (!isAccessToken(accessToken)) {
+      debugLog2('getGoogleReconnectUrl - Invalid or missing access token', { hasToken: !!accessToken });
+      return { error: "Invalid access token", errorCode: "INVALID_TOKEN" };
+    }
+    
+    // Set up the query parameters
+    const params = new URLSearchParams();
+    if (returnToContactId) {
+      params.append('returnToContactId', returnToContactId);
+    }
+    params.append('userId', userId);
+    params.append('forceConsent', 'true'); // Force the consent screen to appear for reconnection
+
+    // Construct the API endpoint using BASE_URL
+    const endpoint = `${BASE_URL}/document/auth/google/reconnect`;
+    
+    // Log the request
+    debugLog2('getGoogleReconnectUrl - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
+    
+    const response = await axios.get(`${endpoint}?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    
+    // Log the response
+    debugLog2('getGoogleReconnectUrl - Response received:', response.data);
+    
+    // For debugging - log the actual response data
+    if (typeof response.data === 'object' && response.data.data) {
+      debugLog2('Response data:', response.data.data);
+    }
+    
+    // Handle different response formats:
+    // 1. Direct URL string
+    if (typeof response.data === 'string') {
+      return response.data;
+    }
+    
+    // 2. Object with URL property
+    if (response.data && typeof response.data === 'object') {
+      // Check for common URL properties
+      const url = response.data.url || response.data.authUrl || response.data.redirectUrl;
+      if (url && typeof url === 'string') {
+        return url;
+      }
+      
+      // Check for data property containing the URL (common API pattern)
+      if (response.data.data) {
+        // If data property is a string, it might be the URL directly
+        if (typeof response.data.data === 'string') {
+          return response.data.data;
+        }
+        
+        // If data is an object, look for URL properties
+        if (typeof response.data.data === 'object') {
+          const dataUrl = response.data.data.url || 
+                         response.data.data.authUrl || 
+                         response.data.data.redirectUrl;
+          if (dataUrl && typeof dataUrl === 'string') {
+            return dataUrl;
+          }
+        }
+      }
+    }
+    
+    // If we get here, we have an unexpected response format, but we'll try to be lenient
+    debugLog2('getGoogleReconnectUrl - Unexpected response format:', response.data);
+    
+    // As a last resort, return the entire response so the component can try to handle it
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // Handle specific status codes
+      if (error.response.status === 404) {
+        debugLog2('getGoogleReconnectUrl - Endpoint not found (404)', 
+          { url: error.config?.url, message: error.message });
+        throw new Error('Google reconnection endpoint not found. Please check API configuration.');
+      }
+      
+      // Handle other API errors with response data
+      debugLog2('getGoogleReconnectUrl - API error response:', 
+        { status: error.response.status, data: error.response.data });
+      throw new Error(error.response.data?.message || 'Failed to get Google reconnection URL');
+    }
+    
+    // Handle network or other errors
+    debugLog2('getGoogleReconnectUrl - Error:', { 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    throw error;
+  }
+};
+
+/**
+ * Disconnects the user from Google Drive
+ * Endpoint: DELETE /api/v1/document/google/disconnect
+ * @returns Object with success status and message
+ */
+export const disconnectGoogleDrive = async () => {
+  try {
+    const userId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+    
+    if (!userId) {
+      debugLog2('disconnectGoogleDrive - No userId found in localStorage', null);
+      return { error: "User ID not found", errorCode: "NO_USER_ID" };
+    }
+    
+    if (!isAccessToken(accessToken)) {
+      debugLog2('disconnectGoogleDrive - Invalid or missing access token', { hasToken: !!accessToken });
+      return { error: "Invalid access token", errorCode: "INVALID_TOKEN" };
+    }
+    
+    // Set up the query parameters
+    const params = new URLSearchParams();
+    params.append('userId', userId);
+    
+    // Construct the API endpoint using BASE_URL
+    const endpoint = `${BASE_URL}/document/google/disconnect`;
+    
+    // Log the request
+    debugLog2('disconnectGoogleDrive - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
+    
+    const response = await axios.delete(`${endpoint}?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    
+    // Log the response
+    debugLog2('disconnectGoogleDrive - Response received:', response.data);
+    
+    // Parse the response
+    if (response.data && typeof response.data === 'object') {
+      // Check for success message or status
+      if (response.data.success === true || response.data.disconnected === true) {
+        return { success: true, message: "Successfully disconnected from Google Drive" };
+      }
+      
+      // If the response has a specific message, return it
+      if (response.data.message) {
+        return { success: true, message: response.data.message };
+      }
+    }
+    
+    // Default success response if we don't have more specific information
+    return { success: true, message: "Disconnected from Google Drive" };
+    
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // Handle specific status codes
+      if (error.response.status === 404) {
+        debugLog2('disconnectGoogleDrive - Endpoint not found (404)', 
+          { url: error.config?.url, message: error.message });
+        return { success: false, error: 'Google Drive disconnect endpoint not found. Please check API configuration.' };
+      }
+      
+      if (error.response.status === 401) {
+        debugLog2('disconnectGoogleDrive - Unauthorized (401)', 
+          { message: error.message });
+        return { success: false, error: 'Authentication failed. Please log in again.' };
+      }
+      
+      // Handle other API errors with response data
+      debugLog2('disconnectGoogleDrive - API error response:', 
+        { status: error.response.status, data: error.response.data });
+      return { 
+        success: false, 
+        error: error.response.data?.message || 'Failed to disconnect from Google Drive',
+        status: error.response.status
+      };
+    }
+    
+    // Handle network or other errors
+    debugLog2('disconnectGoogleDrive - Error:', { 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred while disconnecting from Google Drive'
+    };
   }
 }; 

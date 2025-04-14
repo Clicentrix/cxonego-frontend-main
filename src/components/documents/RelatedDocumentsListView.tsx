@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Button, Tooltip, Input, Popconfirm, Skeleton, Empty } from "antd";
+import { Button, Tooltip, Popconfirm, Skeleton, Modal, Form, Alert } from "antd";
 import "../../styles/documents/allDocuments.css";
 import {
   DataGrid,
   GridCellParams,
   GridRowId,
   GridRowSelectionModel,
-  GridPaginationModel,
 } from "@mui/x-data-grid";
 import { PlusOutlined, FileOutlined, DownloadOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import { useAppSelector, useAppDispatch } from '../../redux/app/hooks';
@@ -18,11 +17,8 @@ import {
   resetDocument,
   resetDocuments
 } from '../../redux/features/documentSlice';
-import { createDebugLogger } from '../../utils/debugLog';
-import DebugOverlay from '../debug/DebugOverlay';
-
-// Create a component-specific debug logger
-const debug = createDebugLogger('RelatedDocumentsListView');
+import AddDocumentForm from './AddDocumentForm';
+import debugLog from '../../utils/debugLog';
 
 interface RelatedDocumentsListViewProps {
   contactId: string;
@@ -30,11 +26,27 @@ interface RelatedDocumentsListViewProps {
 
 const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ contactId }) => {
   const dispatch = useAppDispatch();
+  const [form] = Form.useForm();
+  
+  // Validate contactId immediately to prevent issues
+  const [validContactId, setValidContactId] = useState<boolean>(true);
+  
+  useEffect(() => {
+    // Check if contactId is valid (not empty, not "[object Object]")
+    if (!contactId || contactId === '[object Object]') {
+      debugLog('RelatedDocumentsListView: Invalid contactId detected:', contactId, 'RelatedDocumentsListView');
+      setValidContactId(false);
+    } else {
+      setValidContactId(true);
+    }
+  }, [contactId]);
   
   const { 
     documents: reduxDocuments, 
     getDocumentLoader,
-    totalDocuments 
+    totalDocuments,
+    isGoogleConnected,
+    addDocumentLoader
   } = useAppSelector((state: RootState) => state.documents);
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -47,26 +59,6 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
   };
 
   const [params, setParams] = useState(initialParams);
-
-  // Debug logs for state changes
-  useEffect(() => {
-    debug('Current state', {
-      reduxDocuments,
-      totalDocuments,
-      loading: getDocumentLoader
-    });
-  }, [reduxDocuments, totalDocuments, getDocumentLoader]);
-
-  // Debug logs for loading state changes
-  useEffect(() => {
-    if (getDocumentLoader) {
-      debug('Loading documents');
-    } else if (reduxDocuments.length === 0) {
-      debug('No documents found');
-    } else {
-      debug('Documents loaded', { count: reduxDocuments.length });
-    }
-  }, [getDocumentLoader, reduxDocuments]);
 
   // HARDCODED TEST DATA - This should absolutely display regardless of API or Redux
   const testDocuments = [
@@ -114,10 +106,8 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
     }
   ];
   
-  // Create a simple mock form object
-  const form = {
-    resetFields: () => console.log('Mock form reset')
-  };
+  // Use test documents if no documents from Redux
+  const documents = reduxDocuments.length > 0 ? reduxDocuments : testDocuments;
   
   // The main columns for the DataGrid
   const columns = [
@@ -211,22 +201,8 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
     },
   ];
 
-  // Use test documents if no documents from Redux
-  const documents = reduxDocuments.length > 0 ? reduxDocuments : testDocuments;
-
-  // Debug the document sources
-  useEffect(() => {
-    debug('Document sources:', {
-      fromRedux: reduxDocuments.length,
-      fromTest: testDocuments.length,
-      using: documents.length,
-      source: reduxDocuments.length > 0 ? 'Redux' : 'Test Data'
-    });
-  }, [reduxDocuments, documents]);
-
   // Custom component for displaying when no data is available
   const NoRowsOverlay = () => {
-    debug('Rendering NoRowsOverlay - no documents found');
     return (
       <div style={{ 
         display: 'flex', 
@@ -260,137 +236,156 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
 
   const handleDelete = async (documentId: string) => {
     try {
+      debugLog('Deleting document:', { documentId, contactId }, 'RelatedDocumentsListView');
       await dispatch(deleteDocumentAndRefresh({
         documentId,
         contactId,
         params
       })).unwrap();
-      debug('Document deleted successfully', { documentId });
     } catch (error) {
-      debug('Error deleting document', { documentId, error });
+      debugLog('Error deleting document:', error, 'RelatedDocumentsListView');
     }
+  };
+
+  const handleResetForm = () => {
+    form.resetFields();
+    dispatch(resetDocument());
+  };
+
+  const handleSubmit = () => {
+    setIsModalOpen(false);
+    handleResetForm();
+    dispatch(getContactDocumentsThunk({ contactId, params }));
   };
 
   const showModal = () => {
     setIsModalOpen(true);
+    handleResetForm();
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
+    handleResetForm();
   };
-  
-  // Log the test data we're using
-  console.log('TEST DOCUMENTS:', {
-    testData: testDocuments,
-    count: testDocuments.length,
-    ids: testDocuments.map(d => d.id)
-  });
 
-  // Update debug logs to use the new logger
+  // Fetch documents on component mount and when params change
   useEffect(() => {
-    debug('RelatedDocumentsListView mounted/updated', { contactId });
-    debug('Fetching documents for contactId', { contactId, params });
-    
-    const fetchDocuments = async () => {
-      try {
-        debug('Dispatching checkGoogleConnection');
-        await dispatch(checkGoogleConnection());
-        
-        debug('Dispatching getContactDocumentsThunk', { contactId, params });
-        const result = await dispatch(getContactDocumentsThunk({ contactId, params })).unwrap();
-        debug('getContactDocumentsThunk response:', result);
-      } catch (error) {
-        debug('Error fetching documents:', error);
-      }
-    };
-
-    fetchDocuments();
+    debugLog('Fetching documents for contact', { contactId, params }, 'RelatedDocumentsListView');
+    dispatch(checkGoogleConnection());
+    dispatch(getContactDocumentsThunk({ contactId, params }));
 
     return () => {
-      debug('Cleaning up - resetting documents');
       dispatch(resetDocuments());
       dispatch(resetDocument());
     };
   }, [dispatch, contactId, params]);
 
-  // Update other debug logs
-  useEffect(() => {
-    debug('Documents state updated', {
-      documents,
-      loading: getDocumentLoader,
-      error: false,
-      selectedRows: selectedRowKeys,
-      total: documents.length
-    });
-  }, [documents, getDocumentLoader, selectedRowKeys]);
-
   // Render the component
   return (
     <>
-      <div className="listViewBackWrapper">
-        <div className="activitiesListToolbarWrapper">
-          <div className="activitiesListToolbarItem">
-            <div className="tableTitleIconWrapper">
-              <FileOutlined className="illustrationIcon" />
-              Documents
-              <Button onClick={showModal} className="addOpportunityModalBtn">
-                Upload New
-              </Button>
+      {!validContactId ? (
+        <Alert
+          message="Invalid Contact ID"
+          description="The contact ID is invalid or missing. Document uploads will not work properly. Please try refreshing the page or contact support."
+          type="error"
+          showIcon
+          style={{ margin: '20px 0' }}
+        />
+      ) : (
+        <>
+          <div>
+            <Modal
+              open={isModalOpen}
+              onOk={handleSubmit}
+              onCancel={handleCancel}
+              footer={false}
+            >
+              <div className="addActivityFormDiv">
+                <div className="addActivityTitle">Upload New Document</div>
+
+                <div className="addActivityFormWrapper">
+                  <Form form={form} name="documentForm" onFinish={handleSubmit}>
+                    <AddDocumentForm 
+                      contactId={contactId} 
+                      onUploadSuccess={handleSubmit}
+                    />
+                    <Form.Item className="addActivitySubmitBtnWrapper">
+                      <Button
+                        onClick={handleCancel}
+                        className="addActivityCancelBtn"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        className="addActivitySubmitBtn"
+                        loading={addDocumentLoader}
+                        disabled={!isGoogleConnected}
+                      >
+                        Upload
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </div>
+              </div>
+            </Modal>
+          </div>
+
+          <div className="listViewBackWrapper">
+            <div className="activitiesListToolbarWrapper">
+              <div className="activitiesListToolbarItem">
+                <div className="tableTitleIconWrapper">
+                  <FileOutlined className="illustrationIcon" />
+                  Documents
+                  <Button onClick={showModal} className="addOpportunityModalBtn">
+                    Upload New
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="listTableContainer">
+              {getDocumentLoader ? (
+                <div style={{ padding: '2rem' }}>
+                  <Skeleton active />
+                </div>
+              ) : (
+                <DataGrid
+                  rows={documents}
+                  columns={columns}
+                  autoHeight
+                  getRowId={(row) => row.id || row.documentId || `fallback-${Math.random()}`}
+                  slots={{
+                    noRowsOverlay: NoRowsOverlay
+                  }}
+                  checkboxSelection
+                  onRowSelectionModelChange={handleSelectionChange}
+                  rowSelectionModel={selectedRowKeys}
+                  pagination
+                  paginationModel={{
+                    page: params.page - 1,
+                    pageSize: params.limit,
+                  }}
+                  rowCount={documents.length}
+                  paginationMode="server"
+                  onPaginationModelChange={(model) => {
+                    setParams({
+                      ...params,
+                      page: model.page + 1,
+                      limit: model.pageSize,
+                    });
+                  }}
+                  sx={{ 
+                    minHeight: '400px',
+                    backgroundColor: '#fff',
+                  }}
+                />
+              )}
             </div>
           </div>
-        </div>
-        
-        <DebugOverlay 
-          data={{ 
-            reduxDocuments,
-            testDocuments,
-            usingDocuments: documents,
-            totalDocuments, 
-            loading: getDocumentLoader,
-            params 
-          }} 
-          title="Documents Debug Info" 
-        />
-        
-        <div className="listTableContainer">
-          {getDocumentLoader ? (
-            <div style={{ padding: '2rem' }}>
-              <Skeleton active />
-            </div>
-          ) : (
-            <DataGrid
-              rows={documents}
-              columns={columns}
-              autoHeight
-              getRowId={(row) => row.id || row.documentId || `fallback-${Math.random()}`}
-              slots={{
-                noRowsOverlay: NoRowsOverlay,
-              }}
-              checkboxSelection
-              onRowSelectionModelChange={handleSelectionChange}
-              rowSelectionModel={selectedRowKeys}
-              pagination
-              paginationModel={{
-                page: params.page - 1,
-                pageSize: params.limit,
-              }}
-              rowCount={documents.length}
-              paginationMode="server"
-              onPaginationModelChange={(model) => {
-                setParams({
-                  ...params,
-                  page: model.page + 1,
-                  limit: model.pageSize,
-                });
-              }}
-              sx={{ 
-                minHeight: '400px',
-                backgroundColor: '#fff',
-              }}
-            />
-          )}
-        </div>
-      </div>
+        </>
+      )}
     </>
   );
 };

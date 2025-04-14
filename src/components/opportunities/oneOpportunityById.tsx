@@ -57,6 +57,7 @@ import AllRelatedNotes from "../notes/relatedNotesListView";
 import RelatedDocumentsListView from "../documents/RelatedDocumentsListView";
 import TextArea from "antd/es/input/TextArea";
 import { fetchAllSalesPersonByUserId } from "../../redux/features/organizationSlice";
+import { extractContactId } from "../../utils/contactUtils";
 
 const OneOpportunityById: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -547,9 +548,19 @@ const OneOpportunityById: React.FC = () => {
               </>
             ) : relatedView === "DOCUMENTS" ? (
               <>
-                <RelatedDocumentsListView
-                  contactId={opportunity?.contact}
-                />
+                {(() => {
+                  console.log('=== DEBUG: Opportunity contact data:', opportunity?.contact);
+                  
+                  // Use the utility function to extract the contactId
+                  const contactId = extractContactId(opportunity?.contact);
+                  console.log('=== DEBUG: Extracted contactId using utility:', contactId);
+                  
+                  return (
+                    <RelatedDocumentsListView
+                      contactId={contactId}
+                    />
+                  );
+                })()}
               </>
             ) : (
               <div>
