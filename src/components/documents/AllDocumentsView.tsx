@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Form, Input, Modal, Popconfirm, Spin, Tooltip } from "antd";
+import { Button, Form, Input, Modal, Popconfirm, Spin, Tooltip, message } from "antd";
 import {
   checkGoogleConnection,
   deleteDocumentAndRefresh,
@@ -47,6 +47,11 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<GridRowId[]>([]);
+  
+  // State for the AddDocumentForm managed by the parent
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadDescription, setUploadDescription] = useState<string>('');
+  const [uploadFileList, setUploadFileList] = useState<any[]>([]); // For controlling the Upload component
   
   const initialParams = {
     page: 1,
@@ -146,19 +151,68 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
   ];
 
   const handleResetForm = () => {
-    form.resetFields();
-    dispatch(resetDocument());
+    form.resetFields(); // Reset fields managed by Antd Form
+    // Reset local state for the form
+    setUploadFile(null);
+    setUploadDescription('');
+    setUploadFileList([]); 
+    dispatch(resetDocument()); // Reset any related Redux state if needed
   };
 
-  const handleSubmit = () => {
-    setIsModalOpen(false);
-    handleResetForm();
-    dispatch(getContactDocumentsThunk({ contactId, params }));
+  // This is the function called when the Modal Form's Upload button is clicked
+  const handleSubmit = async () => {
+    debugLog('[AllDocumentsView Submit] Initiated', 
+      { hasFile: !!uploadFile, description: uploadDescription, isConnected: isGoogleConnected }, 
+      'AllDocumentsView'
+    );
+
+    // Perform validation before dispatching
+    if (!uploadFile) {
+      message.error('Please select a file to upload');
+      debugLog('[AllDocumentsView Submit] Failed: No file selected', null, 'AllDocumentsView');
+      return;
+    }
+    if (!uploadDescription || uploadDescription.trim() === '') {
+      message.error('Please enter a description for the document');
+      debugLog('[AllDocumentsView Submit] Failed: No description entered', null, 'AllDocumentsView');
+      return;
+    }
+    if (!isGoogleConnected) {
+      message.error('Google Drive is not connected. Please connect first.');
+      debugLog('[AllDocumentsView Submit] Failed: Google Drive not connected', null, 'AllDocumentsView');
+      return;
+    }
+    
+    try {
+      debugLog('[AllDocumentsView Submit] Dispatching uploadDocumentThunk', 
+        { fileName: uploadFile.name, contactId, description: uploadDescription }, 
+        'AllDocumentsView'
+      );
+      
+      // Dispatch the thunk directly from the parent
+      await dispatch(uploadDocumentThunk({
+        file: uploadFile,
+        description: uploadDescription,
+        contactId
+      })).unwrap();
+      
+      debugLog('[AllDocumentsView Submit] Upload successful', null, 'AllDocumentsView');
+      
+      setIsModalOpen(false); // Close modal on success
+      handleResetForm(); // Reset form state
+      dispatch(getContactDocumentsThunk({ contactId, params })); // Refresh document list
+      
+    } catch (error) {
+      // Error message is already handled by the thunk/slice
+      debugLog('[AllDocumentsView Submit] Caught error from uploadDocumentThunk', error, 'AllDocumentsView');
+      // Optionally, keep the modal open on error?
+      // setIsModalOpen(true); 
+    }
   };
 
   const showModal = () => {
+    handleResetForm(); // Ensure form is reset when opening
     setIsModalOpen(true);
-    handleResetForm();
   };
   
   const handleCancel = () => {
@@ -201,6 +255,20 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
   // Log the documents state to verify rendering
   console.log('Documents state in AllDocumentsView:', documents);
 
+  // Update file state when AddDocumentForm reports a change
+  const handleFileChangeFromForm = (file: File | null) => {
+    setUploadFile(file);
+    // Update fileList for the Upload component
+    setUploadFileList(file ? [{ uid: '-1', name: file.name, status: 'done', originFileObj: file }] : []);
+  };
+
+  // Update description state
+  const handleDescriptionChangeFromForm = (description: string) => {
+    setUploadDescription(description);
+    // Also update the Antd Form field value if needed, though not strictly necessary
+    // form.setFieldsValue({ description }); 
+  };
+
   useEffect(() => {
     dispatch(checkGoogleConnection());
     dispatch(getContactDocumentsThunk({ contactId, params }));
@@ -220,34 +288,40 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
       <div>
         <Modal
           open={isModalOpen}
-          onOk={handleSubmit}
+          // Remove onOk={handleSubmit} as submit is handled by Form's button
           onCancel={handleCancel}
-          footer={false}
+          footer={null} // Use Form's submit button
+          destroyOnClose // Ensure form state is reset when modal closes
         >
           <div className="addActivityFormDiv">
             <div className="addActivityTitle">Upload New Document</div>
 
             <div className="addActivityFormWrapper">
-              <Form form={form} name="documentForm" onFinish={handleSubmit}>
+              {/* Form now triggers this component's handleSubmit */}
+              <Form form={form} name="documentForm" onFinish={handleSubmit} layout="vertical">
                 <AddDocumentForm 
                   contactId={contactId} 
-                  onUploadSuccess={handleSubmit}
+                  // Pass state down and handlers up
+                  onFileChange={handleFileChangeFromForm}
+                  onDescriptionChange={handleDescriptionChangeFromForm}
+                  fileList={uploadFileList} 
                 />
-                <Form.Item className="addActivitySubmitBtnWrapper">
+                <Form.Item className="addActivitySubmitBtnWrapper" style={{ marginTop: '24px' }}>
                   <Button
                     onClick={handleCancel}
                     className="addActivityCancelBtn"
+                    style={{ marginRight: 8 }}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="primary"
-                    htmlType="submit"
+                    htmlType="submit" // This button triggers the form's onFinish
                     className="addActivitySubmitBtn"
                     loading={addDocumentLoader}
-                    disabled={!isGoogleConnected}
+                    disabled={!isGoogleConnected || !uploadFile} // Disable if not connected or no file
                   >
-                    Upload
+                    Upload Document
                   </Button>
                 </Form.Item>
               </Form>

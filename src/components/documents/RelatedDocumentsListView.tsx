@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Tooltip, Popconfirm, Skeleton, Modal, Form, Alert } from "antd";
+import { Button, Tooltip, Popconfirm, Skeleton, Modal, Form, Alert, message } from "antd";
 import "../../styles/documents/allDocuments.css";
 import {
   DataGrid,
@@ -15,7 +15,8 @@ import {
   getContactDocumentsThunk,
   deleteDocumentAndRefresh,
   resetDocument,
-  resetDocuments
+  resetDocuments,
+  uploadDocumentThunk
 } from '../../redux/features/documentSlice';
 import AddDocumentForm from './AddDocumentForm';
 import debugLog from '../../utils/debugLog';
@@ -51,6 +52,11 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<GridRowId[]>([]);
+  
+  // State for the AddDocumentForm managed by the parent
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadDescription, setUploadDescription] = useState<string>('');
+  const [uploadFileList, setUploadFileList] = useState<any[]>([]);
   
   const initialParams = {
     page: 1,
@@ -249,18 +255,64 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
 
   const handleResetForm = () => {
     form.resetFields();
+    setUploadFile(null);
+    setUploadDescription('');
+    setUploadFileList([]);
     dispatch(resetDocument());
   };
 
-  const handleSubmit = () => {
-    setIsModalOpen(false);
-    handleResetForm();
-    dispatch(getContactDocumentsThunk({ contactId, params }));
+  // This is the function called when the Modal Form's Upload button is clicked
+  const handleSubmit = async () => {
+    debugLog('[RelatedDocs Submit] Initiated', 
+      { hasFile: !!uploadFile, description: uploadDescription, isConnected: isGoogleConnected }, 
+      'RelatedDocumentsListView'
+    );
+
+    // Perform validation before dispatching
+    if (!uploadFile) {
+      message.error('Please select a file to upload');
+      debugLog('[RelatedDocs Submit] Failed: No file selected', null, 'RelatedDocumentsListView');
+      return;
+    }
+    if (!uploadDescription || uploadDescription.trim() === '') {
+      message.error('Please enter a description for the document');
+      debugLog('[RelatedDocs Submit] Failed: No description entered', null, 'RelatedDocumentsListView');
+      return;
+    }
+    if (!isGoogleConnected) {
+      message.error('Google Drive is not connected. Please connect first.');
+      debugLog('[RelatedDocs Submit] Failed: Google Drive not connected', null, 'RelatedDocumentsListView');
+      return;
+    }
+    
+    try {
+      debugLog('[RelatedDocs Submit] Dispatching uploadDocumentThunk', 
+        { fileName: uploadFile.name, contactId, description: uploadDescription }, 
+        'RelatedDocumentsListView'
+      );
+      
+      // Dispatch the thunk directly from the parent
+      await dispatch(uploadDocumentThunk({
+        file: uploadFile,
+        description: uploadDescription,
+        contactId
+      })).unwrap();
+      
+      debugLog('[RelatedDocs Submit] Upload successful', null, 'RelatedDocumentsListView');
+      
+      setIsModalOpen(false); // Close modal on success
+      handleResetForm(); // Reset form state
+      dispatch(getContactDocumentsThunk({ contactId, params })); // Refresh document list
+      
+    } catch (error) {
+      // Error message is already handled by the thunk/slice
+      debugLog('[RelatedDocs Submit] Caught error from uploadDocumentThunk', error, 'RelatedDocumentsListView');
+    }
   };
 
   const showModal = () => {
-    setIsModalOpen(true);
     handleResetForm();
+    setIsModalOpen(true);
   };
 
   const handleCancel = () => {
@@ -268,17 +320,30 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
     handleResetForm();
   };
 
+  // Update file state when AddDocumentForm reports a change
+  const handleFileChangeFromForm = (file: File | null) => {
+    setUploadFile(file);
+    setUploadFileList(file ? [{ uid: '-1', name: file.name, status: 'done', originFileObj: file }] : []);
+  };
+
+  // Update description state
+  const handleDescriptionChangeFromForm = (description: string) => {
+    setUploadDescription(description);
+  };
+
   // Fetch documents on component mount and when params change
   useEffect(() => {
-    debugLog('Fetching documents for contact', { contactId, params }, 'RelatedDocumentsListView');
-    dispatch(checkGoogleConnection());
-    dispatch(getContactDocumentsThunk({ contactId, params }));
+    if (validContactId) { // Only fetch if contactId is valid
+      debugLog('Fetching documents for contact', { contactId, params }, 'RelatedDocumentsListView');
+      dispatch(checkGoogleConnection());
+      dispatch(getContactDocumentsThunk({ contactId, params }));
+    }
 
     return () => {
       dispatch(resetDocuments());
       dispatch(resetDocument());
     };
-  }, [dispatch, contactId, params]);
+  }, [dispatch, contactId, params, validContactId]); // Added validContactId
 
   // Render the component
   return (
@@ -286,7 +351,7 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
       {!validContactId ? (
         <Alert
           message="Invalid Contact ID"
-          description="The contact ID is invalid or missing. Document uploads will not work properly. Please try refreshing the page or contact support."
+          description="Cannot load or upload documents."
           type="error"
           showIcon
           style={{ margin: '20px 0' }}
@@ -296,34 +361,39 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
           <div>
             <Modal
               open={isModalOpen}
-              onOk={handleSubmit}
               onCancel={handleCancel}
-              footer={false}
+              footer={null} // Use Form's submit button
+              destroyOnClose
             >
               <div className="addActivityFormDiv">
                 <div className="addActivityTitle">Upload New Document</div>
 
                 <div className="addActivityFormWrapper">
-                  <Form form={form} name="documentForm" onFinish={handleSubmit}>
+                  {/* Form now triggers this component's handleSubmit */}
+                  <Form form={form} name="documentForm" onFinish={handleSubmit} layout="vertical">
                     <AddDocumentForm 
                       contactId={contactId} 
-                      onUploadSuccess={handleSubmit}
+                      // Pass state down and handlers up
+                      onFileChange={handleFileChangeFromForm}
+                      onDescriptionChange={handleDescriptionChangeFromForm}
+                      fileList={uploadFileList}
                     />
-                    <Form.Item className="addActivitySubmitBtnWrapper">
+                    <Form.Item className="addActivitySubmitBtnWrapper" style={{ marginTop: '24px' }}>
                       <Button
                         onClick={handleCancel}
                         className="addActivityCancelBtn"
+                        style={{ marginRight: 8 }}
                       >
                         Cancel
                       </Button>
                       <Button
                         type="primary"
-                        htmlType="submit"
+                        htmlType="submit" // This button triggers the form's onFinish
                         className="addActivitySubmitBtn"
                         loading={addDocumentLoader}
-                        disabled={!isGoogleConnected}
+                        disabled={!isGoogleConnected || !uploadFile}
                       >
-                        Upload
+                        Upload Document
                       </Button>
                     </Form.Item>
                   </Form>

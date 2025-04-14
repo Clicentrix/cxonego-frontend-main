@@ -12,6 +12,7 @@ import {
   getGoogleReconnectUrl,
   disconnectGoogleDrive,
 } from "../../services/documentService";
+import debugLog from "../../utils/debugLog";
 
 // Initial empty document
 export const emptyDocument = {
@@ -155,15 +156,26 @@ export const disconnectGoogle = createAsyncThunk(
 // Upload document
 export const uploadDocumentThunk = createAsyncThunk(
   "documents/uploadDocument",
-  async (payload: { file: File; description: string; contactId: string }) => {
+  async (payload: { file: File; description: string; contactId: string }, { rejectWithValue }) => {
+    debugLog('[uploadDocumentThunk] Starting', payload, 'DocumentSlice');
     try {
+      debugLog('[uploadDocumentThunk] Calling uploadDocument service', null, 'DocumentSlice');
       const response = await uploadDocument(payload);
+      debugLog('[uploadDocumentThunk] uploadDocument service call successful', response, 'DocumentSlice');
       message.success("Document uploaded successfully");
       return response;
     } catch (error) {
-      console.error("Error uploading document:", error);
-      message.error("Failed to upload document. Please try again.");
-      throw error;
+      debugLog('[uploadDocumentThunk] Caught error', error, 'DocumentSlice');
+      // Extract a user-friendly error message
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Failed to upload document. Please try again.";
+        
+      console.error("Error uploading document (Thunk):", error);
+      message.error(errorMessage); // Show the specific error message
+      
+      // Use rejectWithValue to pass the error payload to the rejected action
+      return rejectWithValue(errorMessage);
     }
   }
 );

@@ -382,35 +382,44 @@ export const checkGoogleDriveConnection = async () => {
  * @returns The uploaded document data
  */
 export const uploadDocument = async (payload: UploadDocumentPayload) => {
-  debugLog2('Uploading Document', {
+  debugLog2('[uploadDocument Service] Starting upload process', {
     fileName: payload.file.name,
-    fileSize: payload.file.size,
     contactId: payload.contactId
   });
   try {
-    // Validate user authentication first
+    // Step 1: Validate user authentication
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      debugLog2('User ID not found when uploading document');
+      debugLog2('[uploadDocument Service] Failed: User ID not found');
       throw new Error('User not authenticated. Please log in first.');
     }
-    
-    // Validate access token
-    if (!isAccessToken(accessToken)) {
-      debugLog2('Invalid or missing access token when uploading document');
+    debugLog2('[uploadDocument Service] Passed: User ID found', { userId });
+
+    // Step 2: Validate access token
+    const currentAccessToken = localStorage.getItem("accessToken"); // Fetch current token
+    if (!isAccessToken(currentAccessToken)) {
+      debugLog2('[uploadDocument Service] Failed: Invalid or missing access token', { hasToken: !!currentAccessToken });
       throw new Error('Authentication token is missing or invalid. Please log in again.');
     }
-    
-    // Verify Google Drive connection
+    debugLog2('[uploadDocument Service] Passed: Access token valid');
+
+    // Step 3: Verify Google Drive connection
+    debugLog2('[uploadDocument Service] Checking Google Drive connection before upload');
     const connectionStatus = await checkGoogleDriveConnection();
     if (!connectionStatus.connected) {
-      debugLog2('Google Drive not connected when attempting upload', connectionStatus);
-      throw new Error('Google Drive is not connected. Please connect to Google Drive first.');
+      debugLog2('[uploadDocument Service] Failed: Google Drive not connected', connectionStatus);
+      // Construct a more informative error message
+      const connectErrorMsg = connectionStatus.message 
+          ? `Google Drive is not connected: ${connectionStatus.message}. Please connect/reconnect.`
+          : 'Google Drive is not connected. Please connect to Google Drive first.';
+      throw new Error(connectErrorMsg);
     }
-    
+    debugLog2('[uploadDocument Service] Passed: Google Drive connected');
+
+    // Step 4: Prepare FormData and Config
     const config = {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${currentAccessToken}`, // Use the fetched token
         "Content-Type": "multipart/form-data",
       },
     };
@@ -420,19 +429,11 @@ export const uploadDocument = async (payload: UploadDocumentPayload) => {
     formData.append("file", file);
     formData.append("description", description);
     formData.append("userId", userId); // Ensure userId is included in the form data
-    
-    // Log the upload request
-    debugLog2('Uploading document to Google Drive via API', {
-      fileName: file.name,
-      fileSize: file.size,
-      contactId,
-      userId
-    });
-    
-    // Use the correct endpoint URL
+    debugLog2('[uploadDocument Service] FormData prepared', { description, contactId, userId });
+
+    // Step 5: Make the API call
     const uploadUrl = `${BASE_URL}/document/upload/${contactId}`;
-    
-    debugLog2('POST request to upload document', {
+    debugLog2('[uploadDocument Service] Making POST request to upload document', {
       url: uploadUrl,
       fileSize: file.size,
       hasUserId: !!userId
@@ -440,60 +441,42 @@ export const uploadDocument = async (payload: UploadDocumentPayload) => {
     
     const response = await axios.post(uploadUrl, formData, config);
     
-    // Log success response
-    debugLog2('Document uploaded successfully to Google Drive', {
+    // Step 6: Log success
+    debugLog2('[uploadDocument Service] Upload successful, API response received', {
       fileName: file.name,
-      googleLink: response.data?.googleDriveLink || 'No link returned',
-      documentId: response.data?.documentId || 'No ID returned'
+      responseData: response.data
     });
     
     return response.data;
   } catch (error) {
-    debugLog2("Error uploading document to Google Drive:", error);
+    // Step 7: Log detailed error
+    debugLog2("[uploadDocument Service] Error during upload process:", error);
     
-    // Store error information for debugging
     if (error instanceof Error) {
       localStorage.setItem('document_upload_error', error.message);
       localStorage.setItem('document_upload_error_time', new Date().toISOString());
     }
     
     if (axios.isAxiosError(error)) {
-      // More detailed error handling
       const statusCode = error.response?.status;
-      const errorMessage = error.response?.data?.message || error.message;
+      const responseData = error.response?.data;
+      const errorMessage = responseData?.message || error.message;
       
-      debugLog2(`Upload failed with status ${statusCode}: ${errorMessage}`, {
-        response: error.response?.data,
-        headers: error.response?.headers
+      debugLog2(`[uploadDocument Service] Axios Error Details: Status ${statusCode}`, {
+        response: responseData,
+        headers: error.response?.headers,
+        requestUrl: error.config?.url
       });
       
-      // Handle specific error cases
-      if (statusCode === 401) {
-        // Unauthorized - token may have expired
-        debugLog2('Authentication error during upload. You may need to reconnect to Google Drive.');
-        throw new Error('Authentication failed. Please log in again or reconnect to Google Drive.');
-      } else if (statusCode === 403) {
-        // Forbidden - permission issues
-        debugLog2('Permission error during upload. You may need to reconnect to Google Drive with proper permissions.');
-        throw new Error('You do not have permission to upload to this Google Drive account.');
-      } else if (statusCode === 413) {
-        // Payload too large
-        debugLog2('File is too large for upload.');
-        throw new Error('File is too large. Maximum file size is 5MB.');
-      } else if (statusCode === 400) {
-        // Bad request - might be Google Drive connection issue
-        debugLog2('Bad request error during upload. Might be Google Drive connection issue.');
-        throw new Error('Upload failed: ' + errorMessage + '. You may need to reconnect to Google Drive.');
-      } else if (statusCode === 404) {
-        // URL not found - might be wrong endpoint
-        debugLog2('Endpoint not found (404) during upload:', {
-          url: `${BASE_URL}/document/upload/${payload.contactId}`,
-          contactId: payload.contactId
-        });
-        throw new Error('Document upload endpoint not found. Please contact support.');
-      }
+      // Re-throw a more specific error based on status code
+      if (statusCode === 401) throw new Error('Authentication failed (401). Please log in again or reconnect Google Drive.');
+      if (statusCode === 403) throw new Error('Permission denied (403). Check Google Drive permissions or reconnect.');
+      if (statusCode === 413) throw new Error('File too large (413). Maximum size is 5MB.');
+      if (statusCode === 400) throw new Error(`Upload failed (400): ${errorMessage}. Check connection or file.`);
+      if (statusCode === 404) throw new Error(`Upload endpoint not found (404): ${error.config?.url}. Contact support.`);
       
-      throw new Error('Document upload failed: ' + errorMessage);
+      // General Axios error
+      throw new Error(`Document upload failed: ${errorMessage}`);
     }
     
     throw error;
