@@ -135,6 +135,10 @@ export interface UploadDocumentPayload {
   file: File;
   description: string;
   contactId: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  documentType?: string | null;
+  customDocumentType?: string;
 }
 
 /**
@@ -384,7 +388,8 @@ export const checkGoogleDriveConnection = async () => {
 export const uploadDocument = async (payload: UploadDocumentPayload) => {
   debugLog2('[uploadDocument Service] Starting upload process', {
     fileName: payload.file.name,
-    contactId: payload.contactId
+    contactId: payload.contactId,
+    documentType: payload.documentType
   });
   try {
     // Step 1: Validate user authentication
@@ -424,12 +429,39 @@ export const uploadDocument = async (payload: UploadDocumentPayload) => {
       },
     };
     
-    const { file, description, contactId } = payload;
+    const { file, description, contactId, startTime, endTime, documentType, customDocumentType } = payload;
     const formData = new FormData();
     formData.append("file", file);
     formData.append("description", description);
     formData.append("userId", userId); // Ensure userId is included in the form data
-    debugLog2('[uploadDocument Service] FormData prepared', { description, contactId, userId });
+    
+    // Add new fields if provided
+    if (startTime) {
+      formData.append("startTime", startTime);
+    }
+    
+    if (endTime) {
+      formData.append("endTime", endTime);
+    }
+    
+    if (documentType) {
+      formData.append("documentType", documentType);
+      
+      // Only add customDocumentType if documentType is 'OTHER'
+      if (documentType === 'OTHER' && customDocumentType) {
+        formData.append("customDocumentType", customDocumentType);
+      }
+    }
+    
+    debugLog2('[uploadDocument Service] FormData prepared', { 
+      description, 
+      contactId, 
+      userId,
+      hasStartTime: !!startTime,
+      hasEndTime: !!endTime,
+      documentType,
+      hasCustomType: !!customDocumentType
+    });
 
     // Step 5: Make the API call
     const uploadUrl = `${BASE_URL}/document/upload/${contactId}`;

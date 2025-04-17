@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { emptyValue } from "../../utilities/common/commonFunctions/handleBack";
 import { PlusOutlined, FileOutlined, DownloadOutlined, DeleteOutlined } from "@ant-design/icons";
 import "../../styles/documents/allDocuments.css";
+import debugLog from "../../utils/debugLog";
 
 interface AllDocumentsViewProps {
   contactId: string;
@@ -52,6 +53,7 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadDescription, setUploadDescription] = useState<string>('');
   const [uploadFileList, setUploadFileList] = useState<any[]>([]); // For controlling the Upload component
+  
   
   const initialParams = {
     page: 1,
@@ -107,7 +109,7 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
     },
     {
       field: "uploadedByName",
-      headerName: "UPLOADED BY",
+      headerName: "OWNER",
       width: 200,
       renderCell: (params: GridCellParams) => (
         <div>{params?.row?.uploadedByName || emptyValue}</div>
@@ -282,6 +284,7 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
   if (checkingGoogleConnection) {
     return <Spin tip="Checking Google Drive connection..." />;
   }
+
 
   return (
     <>

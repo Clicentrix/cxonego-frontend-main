@@ -154,7 +154,7 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
     },
     {
       field: "uploadedBy",
-      headerName: "UPLOADED BY",
+      headerName: "OWNER",
       width: 200,
       renderCell: (params: GridCellParams) => {
         const uploadedBy = params?.row?.uploadedBy;
@@ -344,6 +344,9 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
       dispatch(resetDocument());
     };
   }, [dispatch, contactId, params, validContactId]); // Added validContactId
+
+  // ADDING A TEST LOG HERE
+  console.log(`>>> RelatedDocumentsListView Rendering! Contact ID: ${contactId}, isGoogleConnected: ${isGoogleConnected}`);
 
   // Render the component
   return (
