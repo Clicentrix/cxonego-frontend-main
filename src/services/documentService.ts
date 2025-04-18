@@ -58,31 +58,24 @@ const mockDocuments = [
   }
 ];
 
-// Safely get environment variables in a browser-compatible way
-const getEnvVariable = (name: string, defaultValue: string): string => {
-  // Check if window._env_ exists (sometimes used for runtime environment variables)
-  if (typeof window !== 'undefined' && window._env_ && window._env_[name]) {
-    return window._env_[name];
-  }
-  
-  // Check if process.env is available (will work in development with webpack/vite)
-  try {
-    // @ts-ignore - process might not be defined in all environments
-    if (typeof process !== 'undefined' && process.env && process.env[name]) {
-      // @ts-ignore
-      return process.env[name];
-    }
-  } catch (e) {
-    console.warn(`Error accessing process.env.${name}:`, e);
-  }
-  
-  // Fallback to default value
-  return defaultValue;
-};
+// Update the BASE_URL declaration with more logging
+const BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
 
-// API configuration
-// Use environment variable if available, or fall back to backend URL in development
-const BASE_URL = getEnvVariable('REACT_APP_API_URL', 'http://localhost:8000/api/v1');
+if (!BASE_URL) {
+  console.error('ERROR: VITE_REACT_APP_BASE_URL is not defined in environment variables!');
+  console.warn('Falling back to default API URL: http://localhost:8000/api/v1');
+}
+
+// Log environment information for debugging
+console.log('=== Document Service Environment ===');
+console.log('API Base URL:', BASE_URL || 'http://localhost:8000/api/v1');
+console.log('Environment:', import.meta.env.VITE_ENVIRONMENT || 'not specified');
+console.log('Google Callback URLs:', {
+  frontend: import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL,
+  backend: import.meta.env.VITE_GOOGLE_BACKEND_CALLBACK
+});
+console.log('===================================');
+
 const accessToken = localStorage.getItem("accessToken");
 
 // Debug logger function - replaced with the shared utility
@@ -123,6 +116,10 @@ export interface Document {
   fileSize?: number;
   deletedAt: string | null;
   modifiedBy: string | null;
+  documentType?: string;
+  customDocumentType?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface DocumentParams {

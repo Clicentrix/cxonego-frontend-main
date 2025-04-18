@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
+import { getMessaging, isSupported } from "firebase/messaging";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 const apiKey = import.meta.env.VITE_REACT_APP_FIREBASE_API_KEY
@@ -30,4 +30,29 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth();
 export const storage = getStorage(app);
-export const messaging = getMessaging(app);
+
+// Initialize messaging only if supported
+let messaging = null;
+
+// Safe initialization for messaging
+const initializeMessaging = async () => {
+  try {
+    // Check if Firebase messaging is supported in this browser
+    const isMessagingSupported = await isSupported();
+    
+    if (isMessagingSupported) {
+      messaging = getMessaging(app);
+      console.log("Firebase messaging initialized successfully");
+    } else {
+      console.warn("Firebase messaging is not supported in this browser");
+    }
+  } catch (error) {
+    console.error("Error initializing Firebase messaging:", error);
+  }
+};
+
+// Try to initialize messaging
+initializeMessaging();
+
+// Export messaging safely
+export { messaging };

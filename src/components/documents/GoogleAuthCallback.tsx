@@ -5,7 +5,25 @@ import { checkGoogleConnection, getGoogleAuth } from '../../redux/features/docum
 import { useAppDispatch } from '../../redux/app/hooks';
 import debugLog from '../../utils/debugLog';
 
-// Extend Window interface to include _env_ property
+// Early logging to debug environment variables
+console.log('GoogleAuthCallback component loaded');
+console.log('Environment variables:', {
+  apiBaseUrl: import.meta.env.VITE_REACT_APP_BASE_URL,
+  googleCallbackUrl: import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL,
+  environment: import.meta.env.VITE_ENVIRONMENT,
+  mode: import.meta.env.MODE
+});
+
+// More detailed environment information
+console.log('=== Google Auth Callback Environment Details ===');
+console.log('Full window.location:', window.location.href);
+console.log('API Base URL:', import.meta.env.VITE_REACT_APP_BASE_URL);
+console.log('Frontend callback URL:', import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL);
+console.log('Backend callback URL:', import.meta.env.VITE_GOOGLE_BACKEND_CALLBACK);
+console.log('User ID from localStorage:', localStorage.getItem('userId'));
+console.log('Has accessToken:', !!localStorage.getItem('accessToken'));
+console.log('=============================================');
+
 declare global {
   interface Window {
     _env_?: Record<string, string>;
@@ -14,32 +32,19 @@ declare global {
 
 // Safely get environment variables
 const getEnvVariable = (name: string, defaultValue: string): string => {
-  // Check if window._env_ exists (sometimes used for runtime environment variables)
-  if (typeof window !== 'undefined' && window._env_ && window._env_[name]) {
-    return window._env_[name];
+  const value = import.meta.env[name];
+  if (value !== undefined) {
+    return value as string;
   }
-  
-  // Check if process.env is available (will work in development with webpack/vite)
-  try {
-    // @ts-ignore - process might not be defined in all environments
-    if (typeof process !== 'undefined' && process.env && process.env[name]) {
-      // @ts-ignore
-      return process.env[name];
-    }
-  } catch (e) {
-    console.warn(`Error accessing process.env.${name}:`, e);
-  }
-  
-  // Fallback to default value
+  console.warn(`Environment variable ${name} not found, using default value: ${defaultValue}`);
   return defaultValue;
 };
 
-// Safely get environment mode
 const getEnvironmentMode = (): string => {
   try {
-    // @ts-ignore
+   
     if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV) {
-      // @ts-ignore
+   
       return process.env.NODE_ENV;
     }
   } catch (e) {
@@ -450,7 +455,7 @@ const GoogleAuthCallback: React.FC = () => {
           localStorage.removeItem('google_auth_redirect_count');
           
           // Build the correct redirect URI
-          const backendUrl = getEnvVariable('REACT_APP_API_URL', 'http://localhost:8000');
+          const backendUrl = getEnvVariable('REACT_APP_API_URL', 'http://13.235.48.242:8000');
           const correctRedirectUri = `${backendUrl}/api/v1/document/auth/google/callback`;
           
           // Show instructions to the user
@@ -501,7 +506,7 @@ const GoogleAuthCallback: React.FC = () => {
       errorTitle = "Authentication Loop Detected";
       
       // Get OAuth configuration details for help
-      const backendUrl = getEnvVariable('REACT_APP_API_URL', 'http://localhost:8000');
+      const backendUrl = getEnvVariable('REACT_APP_API_URL', 'http://13.235.48.242:8000');
       const correctRedirectUri = `${backendUrl}/api/v1/document/auth/google/callback`;
             
       // Add a manual setup guide button
@@ -566,7 +571,10 @@ const GoogleAuthCallback: React.FC = () => {
               closeButton.style.cssText = 'position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;';
               closeButton.onclick = () => document.body.removeChild(modalContainer);
               
-              setupGuideElement.querySelector('div').appendChild(closeButton);
+              const guideDiv = setupGuideElement.querySelector('div');
+              if (guideDiv) {
+                guideDiv.appendChild(closeButton);
+              }
               
               // Show the modal
               modalContainer.appendChild(setupGuideElement);

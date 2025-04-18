@@ -158,21 +158,34 @@ function LayoutComponent() {
   // Web fcm token code starts
 
   async function requestPermission() {
+    // Check if the browser supports notifications
+    if (!("Notification" in window)) {
+      console.log("This browser does not support notifications");
+      return;
+    }
+    
     const permission = await Notification.requestPermission();
     console.log("in requestPermission fun, ", permission, typeof permission)
+    
     if (permission === "granted") {
       // Generate Token
       try {
+        // Check if messaging is available (not null)
+        if (!messaging) {
+          console.warn("Firebase messaging is not available in this browser");
+          return;
+        }
+        
         const token = await getToken(messaging, {
           vapidKey: vapidKey,
         });
         console.log("fcm token new", token);
         localStorage?.setItem("fcmToken", token);
-        // Send this token  to server ( db)
+        // Send this token to server (db)
         dispatch(updateWebFcmUserPatch(token));
       }
       catch (err) {
-        console.log("eror for fcm token sdf", err);
+        console.log("Error getting FCM token:", err);
       }
     } else if (permission === "denied") {
       alert(

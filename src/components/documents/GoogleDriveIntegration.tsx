@@ -70,7 +70,16 @@ const GoogleDriveIntegration: React.FC<GoogleDriveIntegrationProps> = ({
   }, [isGoogleConnected, onConnected]);
 
   const checkConnection = async () => {
+    setCheckingConnection(true);
+    setConnectionError('');
+    
     try {
+      // Log the API URL being used
+      const apiBaseUrl = import.meta.env.VITE_REACT_APP_BASE_URL;
+      debugLog('[GoogleDriveIntegration] Checking connection', 
+        { apiBaseUrl, userId: localStorage.getItem("userId") }, 
+        'GoogleDriveIntegration');
+      
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
       
@@ -157,6 +166,29 @@ const GoogleDriveIntegration: React.FC<GoogleDriveIntegrationProps> = ({
   const handleConnect = async () => {
     try {
       setConnecting(true);
+      setConnectionError('');
+      
+      // Log the environment and API URL for debugging
+      const apiBaseUrl = import.meta.env.VITE_REACT_APP_BASE_URL;
+      const backendCallbackUrl = import.meta.env.VITE_GOOGLE_BACKEND_CALLBACK;
+      
+      // Enhanced logging
+      debugLog('[GoogleDriveIntegration] Initiating connection', { 
+        apiBaseUrl,
+        backendCallbackUrl, 
+        returnTo: returnTo || 'none',
+        env: import.meta.env.MODE,
+        userId: localStorage.getItem("userId") || 'not found'
+      }, 'GoogleDriveIntegration');
+      
+      // Log to console for immediate visibility
+      console.log('Connecting to Google Drive with:', {
+        apiBaseUrl,
+        backendCallbackUrl,
+        hasUserId: !!localStorage.getItem("userId"),
+        hasToken: !!localStorage.getItem("accessToken")
+      });
+      
       setAuthError(null);
       
       const userId = localStorage.getItem("userId");

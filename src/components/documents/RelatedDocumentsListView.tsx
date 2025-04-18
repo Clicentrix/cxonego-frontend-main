@@ -53,10 +53,14 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<GridRowId[]>([]);
   
-  // State for the AddDocumentForm managed by the parent
+  // State for the document form
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadDescription, setUploadDescription] = useState<string>('');
   const [uploadFileList, setUploadFileList] = useState<any[]>([]);
+  const [uploadStartTime, setUploadStartTime] = useState<string | null>(null); 
+  const [uploadEndTime, setUploadEndTime] = useState<string | null>(null);
+  const [uploadDocumentType, setUploadDocumentType] = useState<string | null>(null);
+  const [uploadCustomDocumentType, setUploadCustomDocumentType] = useState<string>('');
   
   const initialParams = {
     page: 1,
@@ -137,20 +141,39 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
       ),
     },
     {
-      field: "fileType",
+      field: "documentType",
       headerName: "TYPE",
-      width: 100,
-      renderCell: (params: GridCellParams) => (
-        <div>{params?.row?.fileType || "--"}</div>
-      ),
+      width: 150,
+      renderCell: (params: GridCellParams) => {
+        // Display customDocumentType if available and documentType is 'OTHER', otherwise show documentType
+        const displayType = 
+          params?.row?.documentType === 'OTHER' && params?.row?.customDocumentType 
+            ? params?.row?.customDocumentType 
+            : params?.row?.documentType || params?.row?.fileType || "--";
+        return <div>{displayType}</div>;
+      },
     },
     {
-      field: "fileSize",
-      headerName: "SIZE",
-      width: 100,
-      renderCell: (params: GridCellParams) => (
-        <div>{params?.row?.fileSize ? `${(params?.row?.fileSize / 1024).toFixed(2)} KB` : "--"}</div>
-      ),
+      field: "startTime",
+      headerName: "START DATE",
+      width: 150,
+      renderCell: (params: GridCellParams) => {
+        if (!params?.row?.startTime) return <div>--</div>;
+        // Format the date using toLocaleDateString
+        const date = new Date(params?.row?.startTime);
+        return <div>{!isNaN(date.getTime()) ? date.toLocaleDateString() : "--"}</div>;
+      },
+    },
+    {
+      field: "endTime",
+      headerName: "END DATE",
+      width: 150,
+      renderCell: (params: GridCellParams) => {
+        if (!params?.row?.endTime) return <div>--</div>;
+        // Format the date using toLocaleDateString
+        const date = new Date(params?.row?.endTime);
+        return <div>{!isNaN(date.getTime()) ? date.toLocaleDateString() : "--"}</div>;
+      },
     },
     {
       field: "uploadedBy",
@@ -162,17 +185,6 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
           `${uploadedBy.firstName || ''} ${uploadedBy.lastName || ''}`.trim() : 
           "--";
         return <div>{uploaderName}</div>;
-      },
-    },
-    {
-      field: "createdAt",
-      headerName: "UPLOADED ON",
-      width: 210,
-      renderCell: (params: GridCellParams) => {
-        const date = params?.row?.createdAt ? 
-          new Date(params.row.createdAt).toLocaleString() : 
-          "--";
-        return <div>{date}</div>;
       },
     },
     {
@@ -258,13 +270,25 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
     setUploadFile(null);
     setUploadDescription('');
     setUploadFileList([]);
+    setUploadStartTime(null);
+    setUploadEndTime(null);
+    setUploadDocumentType(null);
+    setUploadCustomDocumentType('');
     dispatch(resetDocument());
   };
 
   // This is the function called when the Modal Form's Upload button is clicked
   const handleSubmit = async () => {
     debugLog('[RelatedDocs Submit] Initiated', 
-      { hasFile: !!uploadFile, description: uploadDescription, isConnected: isGoogleConnected }, 
+      { 
+        hasFile: !!uploadFile, 
+        description: uploadDescription, 
+        isConnected: isGoogleConnected,
+        documentType: uploadDocumentType,
+        hasCustomType: !!uploadCustomDocumentType,
+        hasStartTime: !!uploadStartTime,
+        hasEndTime: !!uploadEndTime
+      }, 
       'RelatedDocumentsListView'
     );
 
@@ -285,17 +309,36 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
       return;
     }
     
+    // Validate custom document type if 'OTHER' is selected
+    if (uploadDocumentType === 'OTHER' && (!uploadCustomDocumentType || uploadCustomDocumentType.trim() === '')) {
+      message.error('Please specify the custom document type');
+      debugLog('[RelatedDocs Submit] Failed: No custom document type for OTHER', null, 'RelatedDocumentsListView');
+      return;
+    }
+    
     try {
       debugLog('[RelatedDocs Submit] Dispatching uploadDocumentThunk', 
-        { fileName: uploadFile.name, contactId, description: uploadDescription }, 
+        { 
+          fileName: uploadFile.name, 
+          contactId, 
+          description: uploadDescription,
+          documentType: uploadDocumentType,
+          customDocumentType: uploadCustomDocumentType,
+          startTime: uploadStartTime,
+          endTime: uploadEndTime
+        }, 
         'RelatedDocumentsListView'
       );
       
-      // Dispatch the thunk directly from the parent
+      // Dispatch the thunk directly from the parent with all fields
       await dispatch(uploadDocumentThunk({
         file: uploadFile,
         description: uploadDescription,
-        contactId
+        contactId,
+        startTime: uploadStartTime,
+        endTime: uploadEndTime,
+        documentType: uploadDocumentType,
+        customDocumentType: uploadCustomDocumentType
       })).unwrap();
       
       debugLog('[RelatedDocs Submit] Upload successful', null, 'RelatedDocumentsListView');
@@ -329,6 +372,26 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
   // Update description state
   const handleDescriptionChangeFromForm = (description: string) => {
     setUploadDescription(description);
+  };
+  
+  // Handle document type change
+  const handleDocumentTypeChange = (documentType: string | null) => {
+    setUploadDocumentType(documentType);
+  };
+  
+  // Handle custom document type change
+  const handleCustomDocumentTypeChange = (customType: string) => {
+    setUploadCustomDocumentType(customType);
+  };
+  
+  // Handle start time change
+  const handleStartTimeChange = (startTime: string | null) => {
+    setUploadStartTime(startTime);
+  };
+  
+  // Handle end time change
+  const handleEndTimeChange = (endTime: string | null) => {
+    setUploadEndTime(endTime);
   };
 
   // Fetch documents on component mount and when params change
@@ -374,11 +437,14 @@ const RelatedDocumentsListView: React.FC<RelatedDocumentsListViewProps> = ({ con
                 <div className="addActivityFormWrapper">
                   {/* Form now triggers this component's handleSubmit */}
                   <Form form={form} name="documentForm" onFinish={handleSubmit} layout="vertical">
-                    <AddDocumentForm 
-                      contactId={contactId} 
-                      // Pass state down and handlers up
+                    <AddDocumentForm
+                      contactId={contactId}
                       onFileChange={handleFileChangeFromForm}
                       onDescriptionChange={handleDescriptionChangeFromForm}
+                      onDocumentTypeChange={handleDocumentTypeChange}
+                      onCustomDocumentTypeChange={handleCustomDocumentTypeChange}
+                      onStartTimeChange={handleStartTimeChange}
+                      onEndTimeChange={handleEndTimeChange}
                       fileList={uploadFileList}
                     />
                     <Form.Item className="addActivitySubmitBtnWrapper" style={{ marginTop: '24px' }}>

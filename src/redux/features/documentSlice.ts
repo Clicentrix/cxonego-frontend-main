@@ -156,7 +156,15 @@ export const disconnectGoogle = createAsyncThunk(
 // Upload document
 export const uploadDocumentThunk = createAsyncThunk(
   "documents/uploadDocument",
-  async (payload: { file: File; description: string; contactId: string }, { rejectWithValue }) => {
+  async (payload: { 
+    file: File; 
+    description: string; 
+    contactId: string;
+    startTime?: string | null;
+    endTime?: string | null;
+    documentType?: string | null;
+    customDocumentType?: string;
+  }, { rejectWithValue }) => {
     debugLog('[uploadDocumentThunk] Starting', payload, 'DocumentSlice');
     try {
       debugLog('[uploadDocumentThunk] Calling uploadDocument service', null, 'DocumentSlice');
