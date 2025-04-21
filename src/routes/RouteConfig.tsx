@@ -26,6 +26,7 @@ import SubscriptionPage from "../components/subscription/subscription";
 import HelpAndSupport from "../pages/helpAndSupport/helpAndSupport";
 import PrivacyPolicy from "../pages/helpAndSupport/privacyPolicy";
 import TermsAndConditions from "../pages/helpAndSupport/termsAndConditions";
+import LeadAssignmentPage from "../pages/leads/leadAssignment";
 
 export function LoggedOutRouteConfig() {
   return (
@@ -82,8 +83,7 @@ export function LoggedInRouteConfig() {
         <Route path="/profile/helpAndSupport" element={<HelpAndSupport />} />
         <Route path="/profile/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/profile/terms-and-conditions" element={<TermsAndConditions />} />
-
-
+        <Route path="/profile/lead-assignment" element={<LeadAssignmentPage />} />
       </Routes>
     </>
   );

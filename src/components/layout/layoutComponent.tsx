@@ -365,6 +365,24 @@ function LayoutComponent() {
                     >
                       General
                     </Menu.Item>
+                    {user?.role === "ADMIN" && (
+                      <Menu.Item
+                        key="profile/lead-assignment"
+                        icon={
+                          <img
+                            src={
+                              currentTab === "profile/lead-assignment"
+                              ? DASHBOARD_ICON_WHITE
+                              : DASHBOARD_ICON_ORANGE
+                            }
+                            alt="profile/lead-assignment"
+                          />
+                        }
+                        onClick={() => handleRedirect("profile/lead-assignment")}
+                      >
+                        Lead Assignment
+                      </Menu.Item>
+                    )}
                     {screenWidth > 768 && user?.role === "ADMIN" ? (
                       <Menu.Item
                         key="profile/import-records"
