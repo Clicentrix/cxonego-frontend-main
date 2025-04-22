@@ -5,9 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.prod.json && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.cjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:start:production": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:delete": "pm2 delete ecosystem.config.cjs",
+    "pm2:logs": "pm2 logs cxonego-frontend",
+    "pm2:monitor": "pm2 monit",
+    "pm2:status": "pm2 status",
+    "pm2:save": "pm2 save",
+    "pm2:startup": "pm2 startup",
+    "check-dist": "node -e \"if(!require('fs').existsSync('./dist')) { console.log('Building project...'); require('child_process').execSync('npm run build', {stdio: 'inherit'}); }\"",
+    "postinstall": "npm run check-dist"
   },
   "dependencies": {
     "@capacitor/android": "^5.7.4",
@@ -51,7 +64,9 @@
     "sass": "^1.85.1",
     "slick-carousel": "^1.8.1",
     "xlsx": "^0.18.5",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "connect-history-api-fallback": "^1.6.0",
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",

@@ -42,6 +42,8 @@ const GoogleDriveIntegration: React.FC<GoogleDriveIntegrationProps> = ({
   const [debugVisible, setDebugVisible] = useState(showDebugInfo);
   const [connectionResponse, setConnectionResponse] = useState<any>(null);
   const [initialCheckPerformed, setInitialCheckPerformed] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
 
   useEffect(() => {
     // Only check connection once when component mounts

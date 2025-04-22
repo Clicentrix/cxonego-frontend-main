@@ -42,13 +42,12 @@ const getEnvVariable = (name: string, defaultValue: string): string => {
 
 const getEnvironmentMode = (): string => {
   try {
-   
-    if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV) {
-   
-      return process.env.NODE_ENV;
+    // Use import.meta.env instead of process.env for Vite
+    if (import.meta.env.MODE) {
+      return import.meta.env.MODE;
     }
   } catch (e) {
-    console.warn('Error accessing process.env.NODE_ENV:', e);
+    console.warn('Error accessing environment mode:', e);
   }
   return 'production'; // Default to production for safety
 };

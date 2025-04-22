@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Result, Button, Typography, Divider, Alert, Space } from 'antd';
+import { Result, Button, Typography, Divider, Alert, Space, message } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getGoogleAuth, getGoogleReconnect } from '../../redux/features/documentSlice';
 import { useAppDispatch } from '../../redux/app/hooks';

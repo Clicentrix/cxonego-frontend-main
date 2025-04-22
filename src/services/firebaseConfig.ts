@@ -32,7 +32,7 @@ export const auth = getAuth();
 export const storage = getStorage(app);
 
 // Initialize messaging only if supported
-let messaging = null;
+let messaging: any = null;
 
 // Safe initialization for messaging
 const initializeMessaging = async () => {
