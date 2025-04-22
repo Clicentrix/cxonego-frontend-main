@@ -30,6 +30,7 @@ import GoogleAuthCallback from "../components/documents/GoogleAuthCallback";
 import AuthSuccess from "../pages/auth/AuthSuccess";
 import AuthError from "../pages/auth/AuthError";
 import GoogleDrivePage from "../pages/integrations/GoogleDrivePage";
+import LeadAssignmentPage from "../pages/leads/leadAssignment";
 
 export function LoggedOutRouteConfig() {
   return (
@@ -89,10 +90,7 @@ export function LoggedInRouteConfig() {
         <Route path="/profile/helpAndSupport" element={<HelpAndSupport />} />
         <Route path="/profile/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/profile/terms-and-conditions" element={<TermsAndConditions />} />
-        <Route path="/document/auth/google/callback" element={<GoogleAuthCallback />} />
-        <Route path="/auth-success" element={<AuthSuccess />} />
-        <Route path="/auth-error" element={<AuthError />} />
-        <Route path="/profile/google-drive" element={<GoogleDrivePage />} />
+        <Route path="/profile/lead-assignment" element={<LeadAssignmentPage />} />
       </Routes>
     </>
   );
