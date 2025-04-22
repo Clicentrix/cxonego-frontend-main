@@ -21,6 +21,29 @@ interface UpdateModalProps {
   newOwnerName: string;
 }
 
+interface DeleteModalProps {
+  visible: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  count: number;
+}
+
+const DeleteModal: React.FC<DeleteModalProps> = ({ visible, onCancel, onConfirm, count }) => {
+  return (
+    <Modal
+      title="Confirm Delete"
+      open={visible}
+      onCancel={onCancel}
+      onOk={onConfirm}
+      okText="Delete"
+      okButtonProps={{ danger: true }}
+    >
+      <p>Are you sure you want to delete {count} lead assignment{count > 1 ? 's' : ''}?</p>
+      <p>This action cannot be undone.</p>
+    </Modal>
+  );
+};
+
 const UpdateModal: React.FC<UpdateModalProps> = ({ visible, onCancel, onConfirm, leadType, newOwnerName }) => {
   const [updateType, setUpdateType] = useState<UpdateType>('none');
 
@@ -36,10 +59,9 @@ const UpdateModal: React.FC<UpdateModalProps> = ({ visible, onCancel, onConfirm,
         <p>How would you like to update leads of type "{leadType}" assigned to {newOwnerName}?</p>
         <Radio.Group onChange={(e) => setUpdateType(e.target.value)} value={updateType}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <Radio value="incoming">Update Only Upcoming Leads</Radio>
             <Radio value="existing">Update Only Existing Leads</Radio>
             <Radio value="both">Update Both Existing and Upcoming Leads</Radio>
-            <Radio value="incoming">Update Incoming Leads</Radio>
-            
           </div>
         </Radio.Group>
       </div>
@@ -60,6 +82,7 @@ const LeadAssignmentComponent: React.FC = () => {
   const currentUser = useSelector((state: any) => state.authentication.user);
   const [retryCount, setRetryCount] = useState(0);
   const [selectedLeadTypes, setSelectedLeadTypes] = useState<string[]>([]);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   useEffect(() => {
     if (!currentUser?.organisation) {
@@ -254,7 +277,7 @@ const LeadAssignmentComponent: React.FC = () => {
     }
 
     try {
-      const response = await api.post('/lead-assignment/create-lead-assignment', {
+      const response = await api.post('/leadAssignment/create-lead-assignment', {
         leadType: newLeadType.trim(),
         organisationId: currentUser?.organizationId
       });
@@ -271,6 +294,10 @@ const LeadAssignmentComponent: React.FC = () => {
   };
 
   const handleDelete = async () => {
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
       const deletePromises = selectedLeadTypes.map(async (leadType) => {
         const encodedLeadType = encodeURIComponent(leadType);
@@ -280,6 +307,7 @@ const LeadAssignmentComponent: React.FC = () => {
       await Promise.all(deletePromises);
       message.success('Lead assignments deleted successfully');
       setSelectedLeadTypes([]);
+      setIsDeleteModalVisible(false);
       fetchAssignments();
     } catch (error) {
       message.error('Failed to delete lead assignments');
@@ -365,6 +393,13 @@ const LeadAssignmentComponent: React.FC = () => {
           onConfirm={handleUpdateConfirm}
           leadType={pendingUpdate?.leadType || ''}
           newOwnerName={pendingUpdate ? (userNameMap[pendingUpdate.userId] || 'Unknown User') : ''}
+        />
+
+        <DeleteModal
+          visible={isDeleteModalVisible}
+          onCancel={() => setIsDeleteModalVisible(false)}
+          onConfirm={handleDeleteConfirm}
+          count={selectedLeadTypes.length}
         />
       </div>
     </div>
