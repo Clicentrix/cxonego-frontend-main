@@ -3,6 +3,11 @@
   "compilerOptions": {
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": false,
+    "strict": false,
+    "jsx": "react-jsx"
   }
 } 

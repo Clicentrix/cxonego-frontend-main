@@ -269,3 +269,6 @@
 // }
 
 // export default AddActivityForm;
+
+// Add an empty export to make this a module
+export {};
