@@ -74,7 +74,7 @@ jobs:
           # Check file existence and notify about ecosystem config
           if [ -f "ecosystem.config.cjs" ]; then
             echo "Found ecosystem.config.cjs"
-            pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
+            pm2 reload cxonego-frontend || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
           elif [ -f "ecosystem.config.js" ]; then
             echo "Found ecosystem.config.js"
             pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.js --env production --name ${{ env.PROJECT_NAME }}
@@ -89,5 +89,4 @@ jobs:
           # Show status of running applications
           pm2 status
           
-          # Show app URL
-          echo "Application deployed and running at http://${{ secrets.HOST }}:5173"
+        
