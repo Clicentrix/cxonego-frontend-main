@@ -23,80 +23,29 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
+    - name: ♻️ Cache NPM Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
     - name: 📦 Install Dependencies
       run: npm install --legacy-peer-deps
-      
+
     - name: 🏗️ Build Project
       run: npm run build
       env:
-        # Prevent TypeScript from failing the build
-        TS_NODE_TRANSPILE_ONLY: "true"
-        SKIP_TYPESCRIPT_CHECK: "true"
         NODE_OPTIONS: "--max-old-space-size=4096"
 
-    - name: 📂 Create Logs Directory
-      run: mkdir -p logs
-
-    - name: 📄 Ensure server.cjs exists
-      run: |
-        if [ ! -f server.cjs ]; then
-          if [ -f server.js ]; then
-            cp server.js server.cjs
-          else
-            echo "Creating basic server.cjs file"
-            cat > server.cjs << 'EOF'
-const express = require('express');
-const path = require('path');
-const history = require('connect-history-api-fallback');
-const fs = require('fs');
-
-const app = express();
-const PORT = process.env.PORT || 5173;
-
-// Middleware to handle SPA routing (for React Router)
-app.use(history());
-
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Send index.html for any other requests
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
-// Start the server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`App available at http://localhost:${PORT}`);
-  
-  // Signal to PM2 that the app is ready
-  if (process.send) {
-    try {
-      process.send('ready');
-      console.log('[PM2] Ready signal sent');
-    } catch (error) {
-      console.error('[PM2] Error sending ready signal:', error);
-    }
-  }
-});
-EOF
-          fi
-        fi
-
-    - name: ✅ Verify Build Directory
-      run: |
-        if [ ! -d "dist" ]; then
-          echo "ERROR: Build failed! dist directory not found."
-          exit 1
-        else
-          echo "Build successful. dist directory contains:"
-          ls -la dist
-        fi
+    - name: 📂 List Build Output
+      run: ls -la dist
 
     - name: 🔄 Rsync Build to EC2
       uses: Burnett01/rsync-deployments@5.2.1
       with:
-        switches: -avz --delete --exclude='.env' --exclude='node_modules' --exclude='.git'
+        switches: -avz --delete --exclude='.env' --exclude='node_modules' --exclude='.git' --exclude='build.cjs'
         path: ./
         remote_path: /home/ubuntu/${{ env.PROJECT_NAME }}
         remote_host: ${{ secrets.HOST }}
@@ -110,6 +59,7 @@ EOF
         username: ubuntu
         key: ${{ secrets.SSH }}
         script: |
+          # Load NVM to get access to the right environment
           export NVM_DIR="/home/ubuntu/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           
@@ -121,15 +71,17 @@ EOF
           # Create logs directory if not exists
           mkdir -p logs
           
-          # Ensure ecosystem config file has proper extension
-          if [ ! -f ecosystem.config.cjs ]; then
-            if [ -f ecosystem.config.js ]; then
-              cp ecosystem.config.js ecosystem.config.cjs
-            fi
+          # Check file existence and notify about ecosystem config
+          if [ -f "ecosystem.config.cjs" ]; then
+            echo "Found ecosystem.config.cjs"
+            pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
+          elif [ -f "ecosystem.config.js" ]; then
+            echo "Found ecosystem.config.js"
+            pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.js --env production --name ${{ env.PROJECT_NAME }}
+          else
+            echo "ERROR: No ecosystem config file found!"
+            exit 1
           fi
-          
-          # Start or reload PM2 application
-          pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
           
           # Save PM2 configuration for persistence
           pm2 save
@@ -139,10 +91,3 @@ EOF
           
           # Show app URL
           echo "Application deployed and running at http://${{ secrets.HOST }}:5173"
-
-    - name: 🎉 Deployment Success Notification
-      run: |
-        echo "✅ Deployment completed successfully!"
-        echo "🌐 Your application should now be available at http://${{ secrets.HOST }}:5173"
-        echo "📊 Check PM2 status on your server with: pm2 status"
-        echo "📜 View logs with: pm2 logs ${{ env.PROJECT_NAME }}"
