@@ -71,15 +71,12 @@ jobs:
           # Create logs directory if not exists
           mkdir -p logs
           
-          # Check file existence and notify about ecosystem config
+          # Check for ecosystem.config.cjs file and start/reload PM2
           if [ -f "ecosystem.config.cjs" ]; then
             echo "Found ecosystem.config.cjs"
             pm2 reload cxonego-frontend || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
-          elif [ -f "ecosystem.config.js" ]; then
-            echo "Found ecosystem.config.js"
-            pm2 reload ${{ env.PROJECT_NAME }} || pm2 start ecosystem.config.js --env production --name ${{ env.PROJECT_NAME }}
           else
-            echo "ERROR: No ecosystem config file found!"
+            echo "ERROR: ecosystem.config.cjs file not found!"
             exit 1
           fi
           
