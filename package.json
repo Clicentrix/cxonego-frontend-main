@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node build.cjs",
-    "build:ts": "tsc -p tsconfig.prod.json --skipLibCheck --noEmit && vite build",
+    "build": "node --max-old-space-size=4096 build.cjs",
+    "build:ts": "cross-env NODE_OPTIONS=--max-old-space-size=4096 npx tsc -p tsconfig.prod.json --skipLibCheck --noEmit && cross-env NODE_OPTIONS=--max-old-space-size=4096 npx vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start": "node server.cjs",
@@ -79,6 +79,7 @@
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.4.1",
     "@vitejs/plugin-react-swc": "^3.9.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",

@@ -6,6 +6,9 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5173;
 
+// Log memory settings for debugging purposes
+console.log(`[${new Date().toISOString()}] Node.js memory settings: ${process.env.NODE_OPTIONS || 'default'}`);
+
 // Check if dist directory exists
 if (!fs.existsSync(path.join(__dirname, 'dist'))) {
   console.error('ERROR: dist directory not found!');

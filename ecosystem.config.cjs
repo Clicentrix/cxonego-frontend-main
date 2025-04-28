@@ -11,7 +11,8 @@ module.exports = {
       // Environment variables
       env: {
         NODE_ENV: "production",
-        PORT: 5173
+        PORT: 5173,
+        NODE_OPTIONS: "--max-old-space-size=4096"
       },
       
       // Error and out logs
@@ -36,7 +37,7 @@ module.exports = {
       source_map_support: false,
       
       // Advanced settings
-      node_args: "--max-old-space-size=1536", // Increase Node.js memory limit
+      node_args: "--max-old-space-size=4096", // Increase Node.js memory limit to 4GB
       
       // Enhanced monitoring metrics
       instance_var: "INSTANCE_ID",
@@ -45,14 +46,16 @@ module.exports = {
       env_production: {
         NODE_ENV: "production",
         PORT: 5173,
-        API_URL: "http://13.235.48.242:8000/api/v1/"  // Your API URL from .env
+        API_URL: "http://api.cxonego.me/api/v1/",  // Your API URL from .env
+        NODE_OPTIONS: "--max-old-space-size=4096"
       },
       
       // Optional development environment (if needed)
       env_development: {
         NODE_ENV: "development",
         PORT: 5173,
-        API_URL: "http://localhost:8000/api/v1/"
+        API_URL: "http://localhost:8000/api/v1/",
+        NODE_OPTIONS: "--max-old-space-size=4096"
       }
     }
   ],
@@ -65,7 +68,7 @@ module.exports = {
       ref: "origin/main",
       repo: "git@github.com:yourusername/cxonego-frontend.git",  // Your repo URL
       path: "/home/ubuntu/cxonego-frontend",
-      "post-deploy": "npm install && npm run build && pm2 startOrRestart ecosystem.config.cjs --env production"
+      "post-deploy": "export NODE_OPTIONS='--max-old-space-size=4096' && npm install && npm run build && pm2 startOrRestart ecosystem.config.cjs --env production"
     }
   }
 } 

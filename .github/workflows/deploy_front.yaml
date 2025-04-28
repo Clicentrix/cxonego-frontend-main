@@ -32,6 +32,7 @@ jobs:
         # Prevent TypeScript from failing the build
         TS_NODE_TRANSPILE_ONLY: "true"
         SKIP_TYPESCRIPT_CHECK: "true"
+        NODE_OPTIONS: "--max-old-space-size=4096"
 
     - name: 📂 Create Logs Directory
       run: mkdir -p logs

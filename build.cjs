@@ -8,8 +8,11 @@ console.log('🔨 Starting custom build process...');
 // Step 1: Run TypeScript check with --noEmit flag
 console.log('👉 Running TypeScript check (with errors ignored)...');
 try {
-  // Run TypeScript in a way that it won't fail the build
-  execSync('npx tsc --noEmit false --skipLibCheck true', { stdio: 'inherit' });
+  // Run TypeScript in a way that it won't fail the build - use npx for cross-platform compatibility
+  execSync('npx --no-install tsc --noEmit false --skipLibCheck true', { 
+    stdio: 'inherit',
+    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
+  });
 } catch (error) {
   console.log('⚠️ TypeScript found errors, but continuing with the build...');
   // We're intentionally ignoring TypeScript errors
@@ -18,7 +21,10 @@ try {
 // Step 2: Build with Vite
 console.log('👉 Building with Vite...');
 try {
-  execSync('npx vite build', { stdio: 'inherit' });
+  execSync('npx --no-install vite build', { 
+    stdio: 'inherit',
+    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
+  });
   console.log('✅ Vite build completed successfully!');
 } catch (error) {
   console.error('❌ Vite build failed:', error.message);
