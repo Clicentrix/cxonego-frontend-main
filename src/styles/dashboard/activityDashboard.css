@@ -1,0 +1,266 @@
+/* antd Select css  */
+.activityDash1Wrapper .ant-select .ant-select-selection-placeholder {
+  color: var(--gray3);
+  font-size: 12px;
+}
+.activityDash1Wrapper .ant-picker .ant-picker-input > input {
+  color: unset;
+  color: var(--gray3) !important;
+  font-size: 12px !important;
+  border-radius: 4px;
+}
+.activityDash1Wrapper .ant-select-multiple .ant-select-selector {
+  border-radius: 4px;
+}
+.activityDash1Wrapper .ant-picker {
+  border-radius: 3px;
+}
+.customDateWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.estRevenueInputWrapper {
+  width: 300px;
+  position: absolute;
+  right: 50px;
+  padding: 10px;
+  margin-top: 15px;
+  /* background-color: var(--gray8); */
+  /* box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 4px; */
+  color: var(--gray3);
+  display: flex;
+  gap: 10px;
+}
+.activityDash2Wrapper {
+  margin-top: 3%;
+  width: 100%;
+}
+.activityKPIWrapper {
+  display: flex;
+  gap: 50px;
+  margin-top: 2%;
+  justify-content: center;
+}
+.activityKPITitle {
+  font-size: 16px;
+  margin-bottom: 2%;
+}
+.activityKPIItem {
+  display: flex;
+  gap: 15px;
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.01), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+  padding: 20px;
+}
+.activityDashboardKPI {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14.63px;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 5px;
+}
+.activityDashboardKPIData {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28.45px;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+.activityDash3Wrapper {
+  margin: 4% 0%;
+  display: grid;
+  grid-template-columns: 65% 35%;
+  grid-gap: 20px;
+}
+.activityDashboardBox1 {
+  width: 90px;
+  height: 25px;
+  top: 69px;
+  left: 57px;
+  gap: 0px;
+  opacity: 0px;
+  color: var(--gray3);
+}
+.activityDashPieWrapper {
+  background-color: var(--default-background-color);
+  box-shadow: 0px 11.75428295135498px 20.896503448486328px 0px #d0d2da26;
+  border-radius: 5px;
+  padding: 20px 20px;
+  display: flex;
+  width: 360px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* padding: 40px 40px 20px 40px; */
+  background-color: var(--default-background-color);
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+}
+.activityDashTableTitle {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+}
+
+.activityDashTableWrapper {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px;
+}
+
+.activityDashboardBox2 {
+  width: 100px;
+  text-align: center;
+}
+.filterSelectWrapper1 {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+.filterSelectWrapper1
+  .ant-select-outlined:not(.ant-select-customize-input)
+  .ant-select-selector {
+  /* border: unset; */
+  border-radius: unset;
+  background-color: transparent !important;
+  color: #4d4d4d !important;
+}
+.activityDashTableToolbarWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2% 0 !important;
+}
+
+.activityDashBarWrapper {
+  background-color: var(--default-background-color);
+  box-shadow: 0px 11.75428295135498px 20.896503448486328px 0px #d0d2da26;
+  border-radius: 5px;
+  padding: 20px 20px;
+  display: flex;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+@media screen and (max-width: 768px) {
+  .dashboardWrapper {
+    padding: 10px;
+  }
+  .filtersContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .dashboardSelect {
+    width: unset;
+  }
+  .dashboardSelectDateRange {
+    width: unset;
+  }
+
+  .displayFlexRow {
+    width: 100%;
+  }
+  .leadDash1WrapperGlobal {
+    padding: unset;
+  }
+  .dashboardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .activityDashTableTitle {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .activityKPIWrapper {
+    width: 100%;
+    overflow-x: scroll;
+    gap: 10px;
+    justify-content: left;
+  }
+  .activityKPIItem {
+    padding: 10px;
+  }
+  .activityDashboardKPI {
+    width: 100px;
+  }
+  .activityDash2Wrapper {
+    margin-top: 40px;
+  }
+  .activityDash3Wrapper {
+    grid-template-columns: 100%;
+    font-size: 11px;
+  }
+  .activityDashFunnelWrapper {
+    padding: 10px 10px 15px 10px;
+    margin-bottom: -10px;
+  }
+  .activityDashFunnelDataWrapper {
+    margin-bottom: -22px;
+  }
+  .activityDashboardBox2 {
+    width: unset;
+  }
+  .activityDashboardBox1 {
+    width: unset;
+  }
+  .activityDashFunnelDataWrapper2 {
+    gap: 16%;
+    margin-top: -12px;
+  }
+  .activityDashTableToolbarWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .activityDashTableWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: unset;
+    width: 100%;
+  }
+  .filterSelectWrapper1 {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .pipelineTitle {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .activityDashPieWrapper {
+    padding: 10px;
+    width: 100%;
+  }
+  .activityDash4Wrapper {
+    margin-top: 30px;
+  }
+  .activityDashTableToolbarWrapper {
+    margin: 5% 0;
+  }
+  .activitysListToolbarItem {
+    width: unset !important;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .activityDashBarWrapper {
+    padding: 20px 5px;
+  }
+}

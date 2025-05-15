@@ -1,0 +1,135 @@
+name: CI/CD Deploy to EC2 with Rsync and PM2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: 
+
+env:
+  PROJECT_NAME: cxonego-frontend-main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧾 Checkout Code
+      uses: actions/checkout@v3
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: ♻️ Cache NPM Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: 📦 Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    
+    - name: 🏗️ Build Project
+      run: npm run build
+      env:
+        NODE_OPTIONS: "--max-old-space-size=4096"
+
+    - name: 📂 List Build Output
+      run: |
+        echo "Checking dist directory contents:"
+        ls -la dist
+        echo "Checking for environment variables in the built JavaScript:"
+        # Look for Firebase config in the built files (just checking for existence, not showing values)
+        grep -r "firebaseConfig" dist/assets/js/ || echo "Firebase config not found in build"
+
+    - name: 🔄 Rsync Build to EC2
+      uses: Burnett01/rsync-deployments@5.2.1
+      with:
+        switches: -avz --delete --exclude='node_modules' --exclude='.git' --exclude='build.cjs'
+        path: ./
+        remote_path: /home/ubuntu/${{ env.PROJECT_NAME }}
+        remote_host: ${{ secrets.HOST }}
+        remote_user: ubuntu
+        remote_key: ${{ secrets.SSH }}
+
+    - name: ⚙️ Setup and Restart PM2 on EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.SSH }}
+        script: |
+          # Load NVM to get access to the right environment
+          export NVM_DIR="/home/ubuntu/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
+          cd /home/ubuntu/${{ env.PROJECT_NAME }}
+          
+          # Debug: Check environment and files
+          echo "Checking for .env file:"
+          ls -la .env || echo ".env file not found"
+          
+          # Create or update .env file with production values
+          echo "Creating/updating .env file for production..."
+          cat > .env << 'EOL'
+          # API Base URL
+          VITE_REACT_APP_BASE_URL=https://api.cxonego.me/api/v1/
+          
+          # Google Drive Integration
+          VITE_GOOGLE_AUTH_CALLBACK_URL=https://api.cxonego.me/document/auth/google/callback
+          VITE_GOOGLE_BACKEND_CALLBACK=https://api.cxonego.me/api/v1/document/auth/google/callback
+          
+          # Firebase Configuration
+          VITE_REACT_APP_FIREBASE_API_KEY=AIzaSyCP3C6ZkM_3JyqFUlnRhFlMQ36UHuP7wMg
+          VITE_REACT_APP_FIREBASE_AUTH_DOMAIN=cxonego-prod.firebaseapp.com
+          VITE_REACT_APP_FIREBASE_PROJECT_ID=cxonego-prod
+          VITE_REACT_APP_FIREBASE_STORAGE_BUCKET=cxonego-prod.appspot.com
+          VITE_REACT_APP_FIREBASE_MESSAGING_SENDER_ID=338263407422
+          VITE_REACT_APP_FIREBASE_APP_ID=1:338263407422:web:ceafa482b5deb201b64a6f
+          VITE_REACT_APP_FIREBASE_MEASUREMENT_ID=G-3591R74J01
+          
+          # Other settings
+          VITE_REACT_APP_VAPID_KEY=BH2HacMi2fzNbBoFdQThga-fR0X9SGHIWZUHDYTfDrIs9pytJyCdw7kgPZuPy-vs2yVqrzDU8orqnKrCxs_QIZs
+          VITE_REACT_APP_RAZORPAY_SCRIPT_URL=https://checkout.razorpay.com/v1/checkout.js
+          VITE_REACT_APP_RAZORPAY_API_KEY=rzp_test_SrJwv3DzJ7u0Wt
+          
+          # Environment marker
+          VITE_ENVIRONMENT=production
+          EOL
+          echo ".env file updated for production"
+          
+          # Install only production dependencies
+          npm install --omit=dev --no-audit
+          
+          # Create logs directory if not exists
+          mkdir -p logs
+          
+          # Rebuild the application with the production environment variables
+          echo "Rebuilding the application with production environment variables..."
+          npm run build
+          
+          # Debug: Check the built files for environment variables
+          echo "Checking built files for Firebase config:"
+          grep -r "firebaseConfig" dist/assets/js/ || echo "Firebase config not found in build"
+          
+          # Check for ecosystem.config.cjs file and start/reload PM2
+          if [ -f "ecosystem.config.cjs" ]; then
+            echo "Found ecosystem.config.cjs"
+            pm2 reload cxonego-frontend || pm2 start ecosystem.config.cjs --env production --name ${{ env.PROJECT_NAME }}
+          else
+            echo "ERROR: ecosystem.config.cjs file not found!"
+            exit 1
+          fi
+          
+          # Save PM2 configuration for persistence
+          pm2 save
+          
+          # Show status of running applications
+          pm2 status
+        

@@ -1,0 +1,483 @@
+.contactsListToolbarWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  margin-bottom: 20px;
+}
+.contactsListToolbarItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.addContactModalBtn {
+  border: none;
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+  font-size: 14px;
+}
+
+.addContactTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--neutral-black);
+  margin-bottom: 20px;
+}
+.addContactSubTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--orange-color);
+  margin-bottom: 30px;
+}
+.addContactFormInput {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray3) !important;
+}
+.addContactFormWrapper .ant-row {
+  display: unset;
+}
+.addContactFormWrapper .ant-form-item {
+  margin-bottom: 8px;
+}
+.addContactDiv {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.addContactSubmitBtnWrapper {
+  display: flex;
+  justify-content: end;
+  flex-direction: row;
+  gap: 20px;
+}
+.addContactCancelBtn {
+  background-color: var(--default-background-color);
+  color: var(--gray2);
+  border: 1px solid var(--neutral-black);
+  margin-right: 10px;
+}
+.addContactSubmitBtn {
+  background-color: var(--orange-color);
+  border: none;
+  color: var(--default-background-color);
+}
+
+.contactsDeleteBottomBar {
+  position: fixed;
+  bottom: 20px;
+}
+.contactsViewTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+  color: var(--default-background-color);
+}
+.contactsListWrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}
+.contactBox {
+  border: 1px solid #abbed1;
+  background-color: var(--default-background-color);
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+}
+.contactBox:hover {
+  background-color: #f8f3eb;
+}
+.contactAvtar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(239, 192, 117);
+}
+.contactBoxInfo {
+  /* display: flex; */
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+.contactBoxInfo1 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.contactBoxInfo2 {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.contactFirstContainer {
+  display: flex;
+  justify-content: left;
+  gap: 50px;
+}
+.contactInfo1CompanyNameLabel {
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+}
+.contactInfo1CompanyName {
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+}
+.contactSecondContainerTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 20px;
+}
+
+/* antd css  */
+.oneContactViewWrapper .ant-row {
+  display: unset;
+}
+.onceContactViewWrapperNotEdit .ant-row {
+  display: unset;
+}
+.oneContactViewWrapper .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+.onceContactViewWrapperNotEdit .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+}
+.onceContactViewWrapperNotEdit
+  .ant-form-item
+  .ant-form-item-label
+  > label.ant-form-item-required:not(
+    .ant-form-item-required-mark-optional
+  )::before {
+  display: flex !important;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-label) !important;
+  text-size-adjust: 10%;
+  content: "";
+}
+.onceContactViewWrapperNotEdit .ant-input {
+  border: unset;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.oneContactViewWrapper .ant-input {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.onceContactViewWrapperNotEdit .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  /* color: var(--data-value); */
+  color: var(--data-label) !important;
+}
+.oneContactViewWrapper .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  /* color: var(--data-value); */
+  color: var(--data-label) !important;
+}
+.onceContactViewWrapperNotEdit .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.oneContactViewWrapper .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.addContactHr {
+  margin-bottom: 40px;
+}
+.contactOwnerDiv {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.oneContactTopToolbar1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* margin-bottom: 30px; */
+}
+.contactEditBtn {
+  background-color: var(--orange-color);
+  margin-top: 22px;
+  color: #fff;
+}
+.contactsSwitchDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.contactsSwitchDivItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--gray4);
+  padding: 5px;
+  color: var(--gray2);
+  cursor: pointer;
+  background-color: #e3edf7;
+}
+.contactsSwitchDivItem:hover {
+  background-color: var(--gray6);
+}
+.contactsSelectViewWrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* CONTACT RELATED LEADS  */
+.contactRelatedLeadsSelect {
+  border: 0.5px solid var(--gray4);
+  padding: unset !important;
+}
+.updateContactDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
+.onecContactMainWrapper {
+  height: 100%;
+}
+.updateContactDivCol {
+  padding: 15px;
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  height: 165px;
+}
+.contactInfo1 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  height: 180px;
+}
+.updateContactFlex {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: flex-start;
+}
+.oneContactOwnerDiv {
+  display: flex;
+  justify-content: space-around;
+  gap: 30px;
+}
+.contactNameTitle {
+  color: var(--default-background-color);
+  font-size: 14px;
+}
+.contactEditFormDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+}
+.updateContactOwnerDiv {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.addContactFormDiv
+  .ant-collapse
+  > .ant-collapse-item
+  > .ant-collapse-header
+  .ant-collapse-header-text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+  color: var(--orange-color);
+  margin-bottom: 10px;
+}
+.addContactFormDiv
+  .ant-collapse
+  .ant-collapse-content
+  > .ant-collapse-content-box {
+  padding: unset !important;
+}
+@media screen and (max-width: 768px) {
+  .contactsListWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .contactsListToolbarWrapper {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .contactsListToolbarItem {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .addContactDiv {
+    display: unset;
+  }
+  .ant-modal .ant-modal-content {
+    padding: 20px 15px !important;
+  }
+  .updateOpportunityDescriptionDiv {
+    display: block;
+  }
+  .contactsListWrapper {
+    display: grid;
+    grid-template-columns: 100%;
+  }
+  .updateContactDiv {
+    display: flex;
+    flex-direction: column;
+    align-items: unset;
+  }
+  .contactsSelectViewWrapper {
+    display: flex;
+  }
+  .updateContactDivCol {
+    height: unset;
+  }
+  .contactEditFormDiv {
+    flex-direction: column;
+    gap: 0px;
+  }
+  .updateContactFlex {
+    display: block;
+    margin-bottom: unset;
+  }
+}
+
+.error-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin: 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.error-message-container h3 {
+  color: #ff4d4f;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.error-message-container p {
+  margin-bottom: 1.5rem;
+  color: #595959;
+}
+
+.error-message-container button {
+  margin-top: 1rem;
+}

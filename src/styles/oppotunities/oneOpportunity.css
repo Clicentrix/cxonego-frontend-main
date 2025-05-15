@@ -1,0 +1,415 @@
+.opportunityListToolbarWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  margin-bottom: 20px;
+}
+.opportunityListToolbarItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.addOpportunityModalBtn {
+  border: none;
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+  font-size: 14px;
+}
+
+.addOpportunityTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--neutral-black);
+  margin-bottom: 20px;
+}
+.addOpportunityubTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 30px;
+}
+.addOpportunityFormInput {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray3) !important;
+}
+.addOpportunityFormWrapper .ant-row {
+  display: unset;
+}
+.addOpportunityFormWrapper .ant-form-item {
+  margin-bottom: 8px;
+}
+.addOpportunityDiv {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.addOpportunitySubmitBtnWrapper {
+  display: flex;
+  justify-content: end;
+  flex-direction: row;
+  gap: 20px;
+}
+.addOpportunityCancelBtn {
+  background-color: var(--default-background-color);
+  color: var(--gray2);
+  border: 1px solid var(--neutral-black);
+  margin-right: 10px;
+}
+.addOpportunitySubmitBtn {
+  background-color: var(--orange-color);
+  border: none;
+  color: var(--default-background-color);
+}
+
+.opportunitysDeleteBottomBar {
+  position: fixed;
+  bottom: 20px;
+}
+
+.opportunitysListWrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}
+.opportunityBox {
+  border: 1px solid #abbed1;
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+}
+.opportunityBox:hover {
+  background-color: #f8f3eb;
+}
+.opportunityAvtar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(239, 192, 117);
+}
+.opportunityBoxInfo1 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.opportunityBoxInfo2 {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.opportunityFirstContainer {
+  display: flex;
+  justify-content: left;
+  gap: 50px;
+}
+.opportunityInfo1CompanyNameLabel {
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 14px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+  display: flex;
+  align-items: center;
+}
+
+.opportunitySecondContainerTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 20px;
+}
+
+/* antd css  */
+.oneOpportunityViewWrapper .ant-row {
+  display: unset;
+}
+.onceOpportunityViewWrapperNotEdit .ant-row {
+  display: unset;
+}
+.onceOpportunityViewWrapperNotEdit .ant-select .ant-select-arrow {
+  display: none;
+}
+.oneOpportunityViewWrapper .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+.onceOpportunityViewWrapperNotEdit .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+}
+.onceOpportunityViewWrapperNotEdit
+  .ant-form-item
+  .ant-form-item-label
+  > label.ant-form-item-required:not(
+    .ant-form-item-required-mark-optional
+  )::before {
+  display: flex !important;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-label) !important;
+  text-size-adjust: 10%;
+  content: "";
+}
+.onceOpportunityViewWrapperNotEdit .ant-input {
+  border: unset;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.oneOpportunityViewWrapper .ant-input {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.onceOpportunityViewWrapperNotEdit .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-label) !important;
+}
+.oneOpportunityViewWrapper .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-label) !important;
+}
+.onceOpportunityViewWrapperNotEdit .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.oneOpportunityViewWrapper .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.addOpportunityHr {
+  margin-bottom: 40px;
+}
+
+.oneOpportunityTopToolbar1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.opportunityEditBtn {
+  background-color: var(--orange-color);
+  margin-top: 22px;
+  color: #fff;
+}
+.opportunitysSwitchDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.opportunitysSwitchDivItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--gray4);
+  padding: 5px;
+  color: var(--gray2);
+  cursor: pointer;
+  background-color: #e3edf7;
+}
+.opportunitysSwitchDivItem:hover {
+  background-color: var(--gray6);
+}
+.opportunityEditFormDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.oneOpportunityMainWrapper {
+  height: 100%;
+}
+.updateOpportunityDivCol {
+  padding: 15px 20px;
+  /* width: 100%; */
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.updateOpportunityFlex {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+  margin-top: 20px;
+}
+.relatedViewHr {
+  border-radius: 4px;
+  background-color: var(--gray4);
+  margin: 20px 0;
+  height: 2px;
+  color: #abbed1;
+  border: unset;
+}
+.opportunityNameTitle {
+  color: var(--gray2);
+  font-size: 14px;
+}
+@media screen and (max-width: 768px) {
+  .updateOpportunityFlex {
+    display: block;
+    margin-bottom: unset;
+  }
+  .opportunityEditFormDiv {
+    flex-direction: column;
+    gap: 0px;
+  }
+  .updateOpportunityDivCol {
+    padding: 15px;
+  }
+  .opportunitysSelectView1 {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .opportunitysSelectViewWrapper {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: unset;
+  }
+}
+.opportunityEditFormDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.updateOpportunityOwnerDiv {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+@media screen and (max-width: 768px) {
+  .opportunitiesListWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .opportunitiesListToolbarWrapper {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .opportunitiesListToolbarItem {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .addOpportunityDiv {
+    display: unset;
+  }
+  .ant-modal .ant-modal-content {
+    padding: 20px 15px !important;
+  }
+  .updateOpportunityDescriptionDiv {
+    display: block;
+  }
+  .opportunitiesListWrapper {
+    display: grid;
+    grid-template-columns: 100%;
+  }
+  .updateOpportunityDiv {
+    display: flex;
+    flex-direction: column;
+    align-items: unset;
+  }
+  .opportunitiesSelectViewWrapper {
+    display: flex;
+  }
+  .updateOpportunityDivCol {
+    height: unset;
+  }
+  .opportunityEditFormDiv {
+    flex-direction: column;
+    gap: 0px;
+  }
+  .updateOpportunityFlex {
+    display: block;
+    margin-bottom: unset;
+  }
+  .oppoAddFormGrid {
+    display: unset;
+  }
+}

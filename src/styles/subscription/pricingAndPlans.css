@@ -1,0 +1,442 @@
+.pricingBackWrapper {
+  padding: 10px;
+  min-height: 100vh;
+  max-height: 100%;
+  /* background-image: url("../../../public/assets/personalization/defaultBackImage.png"); */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.pricingLogoTopDiv {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+.pricingLogoTopDiv img {
+  width: 100px;
+}
+.pricingTitle {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  text-align: center;
+  color: #333333;
+}
+.pricingTitlefailed {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  text-align: center;
+  color: #e02b1d;
+}
+.pricingSubTitle {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  color: #4f4f4f;
+  margin-top: 10px;
+}
+.pricingMiddleDiv {
+  padding: 20px 10px;
+  height: auto;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+  background-color: var(--default-background-color);
+  width: 70%;
+  margin: 0% auto 3% auto;
+  padding: 3%;
+}
+.pricingInnerDiv {
+  border-radius: 8px;
+  border: 1px solid #abbed1;
+  margin: 6% 4% 2% 4%;
+  box-shadow: 0px 4px 25.5px 0px #0000001c;
+}
+.pricingInnerDiv2 {
+  border-radius: 8px;
+  border: 1px solid #abbed1;
+  margin: 2% 4% 2% 4%;
+  box-shadow: 0px 4px 25.5px 0px #0000001c;
+}
+.pricingInner2Div {
+  padding: 4%;
+}
+.pricingBlueTag {
+  border-radius: 8px 0px 20px 0px;
+  background-color: #0078d4;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.94px;
+  text-align: left;
+  width: 200px;
+  color: var(--default-background-color);
+  padding: 7px 10px;
+}
+.pricingMiddleFlex {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.pricingCheckAndText {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 38.15px;
+  letter-spacing: -0.20000000298023224px;
+  text-align: left;
+  color: #454545;
+}
+.pricingCheckAndText2 {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 28.15px;
+  letter-spacing: -0.20000000298023224px;
+  text-align: left;
+  color: #454545;
+}
+.pricingCheckAndText img {
+  width: 12px;
+}
+.pricingRateEmphasized {
+  font-size: 38.87px;
+  font-weight: 700;
+  line-height: 51.11px;
+  letter-spacing: -0.6290076375007629px;
+  text-align: left;
+  color: #161c2d;
+}
+.pricingRateDiv {
+  text-align: right;
+}
+.pricingRateWrapper {
+  margin-bottom: 30px;
+}
+.pricingSubmitBtnWrapper {
+  display: flex;
+  flex-direction: row;
+}
+.subscribeBtn {
+  background-color: var(--orange-color2);
+  color: var(--default-background-color);
+  border: 1px solid var(--orange-color2);
+  margin-right: 20px;
+}
+.startTrialBtn {
+  background-color: var(--default-background-color);
+  color: var(--orange-color2);
+  border: 1px solid var(--orange-color2);
+}
+.pricingMiddleDiv .ant-steps {
+  width: 90%;
+  margin: auto auto 5% auto;
+}
+.pricingCTA2wrapper {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: left;
+  color: #161c2d;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 10px;
+}
+.pricingCTA2Btn {
+  background-color: #b3ddfd;
+  border-radius: 6px;
+}
+.makePaymentButton {
+  background-color: var(--orange-color2);
+  color: var(--default-background-color);
+  border: 1px solid var(--orange-color2);
+}
+.contactAdminSubmitButton {
+  background-color: var(--orange-color2);
+  color: var(--default-background-color);
+  border: 1px solid var(--orange-color2);
+}
+.pricingPaymentGifWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px auto;
+}
+.pricingPaymentGifWrapperFail {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px auto;
+}
+.pricingPaymentGifWrapper img {
+  width: 10%;
+}
+.pricingPaymentGifWrapperFail img {
+  width: 30%;
+}
+.pricingMiddleDiv .ant-steps.ant-steps-dot .ant-steps-item-tail::after,
+.ant-steps.ant-steps-dot.ant-steps-small .ant-steps-item-tail::after {
+  height: 6px !important;
+  margin-inline-start: 12px !important;
+  border-radius: 60px !important;
+  background-color: var(--orange-color2) !important;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-process
+  .ant-steps-item-icon
+  > .ant-steps-icon
+  .ant-steps-icon-dot
+  .ant-popover-open {
+  background-color: var(--orange-color2) !important;
+  top: 0.5px !important;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-process
+  .ant-steps-item-icon
+  > .ant-steps-icon
+  .ant-steps-icon-dot {
+  background-color: var(--orange-color2) !important;
+}
+.pricingMiddleDiv
+  .ant-steps.ant-steps-dot
+  .ant-steps-item-process
+  .ant-steps-item-icon,
+.ant-steps.ant-steps-dot.ant-steps-small
+  .ant-steps-item-process
+  .ant-steps-item-icon {
+  top: 1px !important;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-finish
+  .ant-steps-item-icon
+  > .ant-steps-icon
+  .ant-steps-icon-dot {
+  background-color: var(--orange-color2) !important;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-finish
+  > .ant-steps-item-container
+  > .ant-steps-item-content
+  > .ant-steps-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-process
+  > .ant-steps-item-container
+  > .ant-steps-item-content
+  > .ant-steps-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+}
+.pricingMiddleDiv
+  .ant-steps
+  .ant-steps-item-wait
+  > .ant-steps-item-container
+  > .ant-steps-item-content
+  > .ant-steps-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+}
+/* Payment Summary Page css starts */
+.summaryBottomDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* margin-top: 25%; */
+  gap: 20px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* Payment Summary Page css ends  */
+/* Payment Page css starts */
+.paymentPageMain {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+}
+.upgradePlanBtn{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 50px;
+}
+.upgradePlanBtnMain{
+background-color: var(--orange-color2);
+color: var(--default-background-color);
+}
+.upgradePlanOr{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #454545;
+  font-weight: 800;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+.subscriptionWindowTitle {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 36px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: var(--gray1);
+  margin-bottom: 5px;
+}
+/* Payment Page css ends */
+
+@media screen and (max-width: 768px) {
+  .pricingMiddleDiv {
+    width: 100%;
+    padding: unset;
+    margin: unset;
+    padding: 25px 10px;
+  }
+
+  .pricingMiddleDiv .ant-steps {
+    width: 100%;
+    overflow: scroll;
+  }
+  .pricingMiddleDiv .ant-steps.ant-steps-vertical {
+    display: flex;
+    flex-direction: row;
+  }
+  .pricingMiddleDiv .ant-steps .ant-steps-item-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ant-steps.ant-steps-vertical > .ant-steps-item {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: unset;
+    width: 150px;
+  }
+  .pricingMiddleDiv
+    .ant-steps.ant-steps-vertical.ant-steps-dot
+    .ant-steps-item
+    > .ant-steps-item-container
+    > .ant-steps-item-tail {
+    top: -3 !important;
+  }
+  .pricingMiddleDiv
+    .ant-steps.ant-steps-vertical.ant-steps-dot
+    .ant-steps-item
+    > .ant-steps-item-container
+    > .ant-steps-item-tail {
+    top: -3px;
+    display: flex;
+    flex-direction: column;
+  }
+  .ant-steps.ant-steps-vertical
+    > .ant-steps-item
+    > .ant-steps-item-container
+    > .ant-steps-item-tail::after {
+    width: 55px;
+    height: 2px;
+  }
+  .pricingMiddleDiv
+    .ant-steps
+    .ant-steps-item-process
+    > .ant-steps-item-container
+    > .ant-steps-item-content
+    > .ant-steps-item-title {
+    font-size: 11px;
+  }
+  .pricingMiddleDiv
+    .ant-steps
+    .ant-steps-item-wait
+    > .ant-steps-item-container
+    > .ant-steps-item-content
+    > .ant-steps-item-title {
+    font-size: 11px;
+  }
+  .pricingMiddleDiv
+    .ant-steps
+    .ant-steps-item-finish
+    > .ant-steps-item-container
+    > .ant-steps-item-content
+    > .ant-steps-item-title {
+    font-size: 11px;
+  }
+  .pricingSubWrapper {
+    margin: 60px 0;
+    padding: 15px;
+  }
+  .pricingTitle {
+    font-size: 22px;
+  }
+  .pricingSubTitle {
+    font-size: 13px;
+  }
+  .summaryBottomDiv {
+    font-size: 12px;
+  }
+  .subscribeBtn {
+    margin: 5% 0;
+  }
+  .pricingInnerDiv {
+    margin: 12% 0% 12% 0%;
+  }
+  .pricingMiddleFlex {
+    display: flex;
+    flex-direction: column;
+  }
+  .pricingRateDiv {
+    margin-top: 30px;
+    text-align: left;
+  }
+  .pricingSubmitBtnWrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+  .pricingCTA2wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .pricingPaymentGifWrapper img {
+    width: 50%;
+  }
+  .pricingPaymentGifWrapperFail img {
+    width: 100%;
+  }
+  .pricingInnerDiv2{
+    margin: 0;
+  }
+  .contactAdminSubmitButton {
+  width: 100%;
+}
+.pricingCTA2Btn{
+  width: 100%;
+}
+}

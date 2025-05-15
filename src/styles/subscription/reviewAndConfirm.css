@@ -1,0 +1,226 @@
+.reviewBackWrapper {
+  padding: 10px;
+  min-height: 100vh;
+  max-height: 100%;
+  background-image: url("/assets/personalization/defaultBackImage.png");
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.reviewLogoTopDiv {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+.reviewLogoTopDiv img {
+  width: 100px;
+}
+.reviewTitle {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 36px;
+  text-align: center;
+  color: #333333;
+}
+.reviewSubTitle {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  color: #4f4f4f;
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+.reviewDisclaimer {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  color: #4f4f4f;
+  width: 90%;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.reviewMiddleDiv {
+  padding: 20px 10px;
+  height: auto;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.05),
+    0 3px 6px -4px rgba(0, 0, 0, 0.05), 0 9px 28px 8px rgba(0, 0, 0, 0.01);
+  border-radius: 4px;
+  background-color: var(--default-background-color);
+  width: 70%;
+  margin: 3% auto;
+  padding: 3%;
+}
+.reviewInnerDiv {
+  border-radius: 8px;
+  border: 1px solid #abbed1;
+  margin: 2% 13% 0% 13%;
+  box-shadow: 0px 4px 25.5px 0px #0000001c;
+}
+.reviewInnerDiv2 {
+  border-radius: 8px;
+  border: 1px solid #abbed1;
+  margin: 2% 15% 0% 15%;
+  box-shadow: 0px 4px 25.5px 0px #0000001c;
+}
+.reviewInner2Div {
+  padding: 4%;
+}
+.reviewTextDiv {
+  display: flex;
+  justify-content: space-between;
+  margin: 1% 22% 2% 22%;
+  align-items: center;
+}
+.reviewBlueTag {
+  border-radius: 8px 0px 20px 0px;
+  background-color: #0078d4;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 16.94px;
+  text-align: left;
+  width: 200px;
+  color: var(--default-background-color);
+  padding: 7px 10px;
+}
+.reviewMiddleFlex {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.reviewMiddleFlex2 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.reviewCheckAndText {
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 38.15px;
+  letter-spacing: -0.20000000298023224px;
+  text-align: left;
+  color: #454545;
+}
+.reviewCheckAndText img {
+  width: 12px;
+}
+.reviewRateEmphasized {
+  font-size: 38.87px;
+  font-weight: 700;
+  line-height: 51.11px;
+  letter-spacing: -0.6290076375007629px;
+  text-align: left;
+  color: #161c2d;
+}
+.reviewRateDiv {
+  text-align: right;
+}
+.reviewRateWrapper {
+  margin-bottom: 30px;
+}
+.subscribeBtn {
+  background-color: var(--orange-color2);
+  color: var(--default-background-color);
+  border: 1px solid var(--orange-color2);
+  margin-right: 20px;
+}
+.startTrialBtn {
+  background-color: var(--default-background-color);
+  color: var(--orange-color2);
+  border: 1px solid var(--orange-color2);
+}
+.reviewText {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: left;
+  color: #161c2d;
+}
+.reviewBtn {
+  border-radius: unset;
+  text-decoration: underline;
+  background-color: unset;
+  border: none;
+  color: #0078d4;
+}
+.reviewBtn:hover {
+  background-color: transparent;
+  box-shadow: unset;
+}
+@media screen and (max-width: 768px) {
+  .reviewTitle {
+    font-size: 22px;
+  }
+  .reviewWrapper {
+    margin: 10% auto;
+    padding: 10px;
+  }
+  .reviewSubTitle {
+    font-size: 12px;
+  }
+  .reviewTextDiv {
+    margin: 13% 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .reviewText {
+    font-size: 10px;
+  }
+  .reviewText .ant-btn > span {
+    font-size: 10px !important;
+  }
+  .reviewTextDiv .ant-btn {
+    font-size: 10px;
+  }
+
+  .reviewInner2Div {
+    padding: 20px;
+  }
+  .reviewCheckAndText {
+    font-size: 13px;
+  }
+  .reviewInnerDiv {
+    margin: 12% 0% 12% 0%;
+  }
+  .reviewMiddleFlex {
+    display: flex;
+    flex-direction: column;
+  }
+  .reviewRateDiv {
+    margin-top: 30px;
+    text-align: left;
+    width: 100%;
+  }
+  .reviewSubmitBtnWrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+  .reviewCTA2wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .reviewDisclaimer {
+    font-size: 11px;
+    width: 100%;
+  }
+  .reviewInnerDiv2 {
+    margin: 0;
+  }
+  .reviewMiddleFlex2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

@@ -1,0 +1,14 @@
+.signupMain {
+  background-color: var(--default-background-color);
+  width: 40%;
+  margin: 0% auto;
+  padding: 5% 3%;
+}
+@media only screen and (max-width: 600px) {
+  .signupMain {
+    margin: 5% auto;
+    padding: 16% 0% 15% 0%;
+    border-radius: 10px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,36 @@
+.notesSelectView1 {
+  display: flex;
+  /* justify-content: center; */
+  /* align-items: center; */
+  gap: 20px;
+}
+.notesSelectViewWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: var(--default-background-color);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  width: 100%;
+  padding: 0px 20px;
+}
+@media screen and (max-width: 768px) {
+  .notesSelectView1 {
+    display: flex;
+    justify-content: unset;
+  }
+  .notesSelectViewWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background-color: var(--default-background-color);
+    box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 0px 20px;
+  }
+}

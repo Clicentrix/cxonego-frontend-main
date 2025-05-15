@@ -1,0 +1,22 @@
+.filterSelectWrapper .ant-select-dropdown .ant-select-item {
+  padding: 0px 5px 0px 0px;
+}
+.filterSelectWrapper .ant-select-dropdown .ant-select-item {
+  font-size: 10px !important;
+  padding: 0px 5px !important;
+}
+.filterSelectWrapper .ant-select-dropdown .ant-select-item-option-content {
+  font-size: 10px !important;
+}
+.ant-select-dropdown .ant-select-item {
+  min-height: unset !important;
+  padding: 5px 12px !important;
+  color: var(--gray2) !important;
+  font-size: 12px !important;
+}
+.filterSelectWrapper .ant-select-multiple {
+  font-size: 10px !important;
+}
+.filterSelectWrapper {
+  position: relative;
+}

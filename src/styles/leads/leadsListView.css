@@ -1,0 +1,182 @@
+.leadsListToolbarWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  margin-bottom: 40px;
+}
+
+.addLeadModalBtn {
+  border: none;
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+  font-size: 14px;
+}
+.addBulkModalBtn {
+  border: none;
+  background-color: var(--gray6);
+  padding: unset;
+}
+.addBulkModalBtnWrapper {
+  background-color: var(--gray6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-radius: 4px;
+}
+.addLeadTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--neutral-black);
+  margin-bottom: 20px;
+}
+.addLeadSubTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+  color: var(--orange-color);
+  margin-bottom: 10px;
+}
+.addLeadFormInput {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray3) !important;
+}
+.addLeadFormWrapper .ant-row {
+  display: unset;
+}
+.addLeadFormWrapper .ant-form-item {
+  margin-bottom: 8px;
+}
+.addLeadDiv {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+.addLeadSubmitBtnWrapper {
+  display: flex;
+  justify-content: end;
+  flex-direction: row;
+  gap: 20px;
+}
+.addLeadCancelBtn {
+  background-color: var(--default-background-color);
+  color: var(--gray2);
+  border: 1px solid var(--neutral-black);
+  margin-right: 10px;
+}
+.addLeadSubmitBtn {
+  background-color: var(--orange-color);
+  border: none;
+  color: var(--default-background-color);
+}
+.bulkCSVBottomWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+.csvDownloadBtn {
+  box-shadow: 0px 4px 8px 0px #abbed166;
+  font-size: 13px;
+}
+
+.leadsInlineInput {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray4) !important;
+  border-radius: unset !important;
+  font-size: 12px !important;
+}
+.leadsInlineInput .ant-select-selector {
+  border: unset !important;
+  font-size: 12px !important;
+}
+/* Toolbar css  */
+.leadsSwitchDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.leadsSwitchDivItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--gray4);
+  padding: 5px;
+  color: var(--gray2);
+  cursor: pointer;
+  background-color: #e3edf7;
+}
+.leadsSwitchDivItem:hover {
+  background-color: var(--gray6);
+}
+.leadsListToolbarItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.updateLeadFlex {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+}
+.addLeadFormDiv
+  .ant-collapse
+  > .ant-collapse-item
+  > .ant-collapse-header
+  .ant-collapse-header-text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray2);
+  color: var(--orange-color);
+  margin-bottom: 10px;
+}
+.addLeadFormDiv
+  .ant-collapse
+  .ant-collapse-content
+  > .ant-collapse-content-box {
+  padding: unset !important;
+}
+.updateOpportunityDescriptionDiv {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+@media screen and (max-width: 768px) {
+  .leadsListToolbarWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .leadsListToolbarItem {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .addLeadDiv {
+    display: unset;
+  }
+  .ant-modal .ant-modal-content {
+    padding: 20px 15px !important;
+  }
+  .updateOpportunityDescriptionDiv {
+    display: block;
+  }
+}

@@ -1,0 +1,393 @@
+.referralsListToolbarItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.addReferralsModalBtn {
+  border: none;
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+  font-size: 14px;
+}
+
+.addReferralsTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--neutral-black);
+  margin-bottom: 20px;
+}
+.addReferralsSubTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--orange-color);
+  margin-bottom: 30px;
+}
+.addReferralFormInput {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: var(--gray3) !important;
+}
+.addReferralFormWrapper .ant-row {
+  display: unset;
+}
+.addReferralFormWrapper .ant-form-item {
+  margin-bottom: 8px;
+}
+
+.addReferralSubmitBtnWrapper {
+  display: flex;
+  justify-content: end;
+  flex-direction: row;
+  gap: 20px;
+}
+.addReferralCancelBtn {
+  background-color: var(--default-background-color);
+  color: var(--gray2);
+  border: 1px solid var(--neutral-black);
+  margin-right: 10px;
+}
+.addReferralSubmitBtn {
+  background-color: var(--orange-color);
+  border: none;
+  color: var(--default-background-color);
+}
+
+.referralsDeleteBottomBar {
+  position: fixed;
+  bottom: 20px;
+}
+.referralsViewTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+  color: var(--default-background-color);
+}
+.referralsListWrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}
+.referralBox {
+  border: 1px solid #abbed1;
+  background-color: var(--default-background-color);
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+}
+.referralBox:hover {
+  background-color: #f8f3eb;
+}
+.referralAvtar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(239, 192, 117);
+}
+.referralBoxInfo1 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.referralBoxInfo2 {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: 0.10000000149011612px;
+  text-align: left;
+}
+.referralFirstContainer {
+  display: flex;
+  justify-content: left;
+  gap: 50px;
+}
+.referralInfo1CompanyNameLabel {
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+}
+.referralInfo1CompanyName {
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+}
+.referralSecondContainerTitle {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #4d4d4d;
+  margin-bottom: 20px;
+}
+
+/* antd css  */
+.oneReferralViewWrapper .ant-row {
+  display: unset;
+}
+.onceReferralViewWrapperNotEdit .ant-row {
+  display: unset;
+}
+.oneReferralViewWrapper .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+.onceReferralViewWrapperNotEdit .ant-form-item .ant-form-item-label > label {
+  display: flex !important;
+  letter-spacing: 0em;
+  text-align: left;
+  text-size-adjust: 10%;
+  font-size: 13px;
+  color: var(--data-value);
+  font-weight: 700;
+  line-height: 27px;
+}
+.onceReferralViewWrapperNotEdit
+  .ant-form-item
+  .ant-form-item-label
+  > label.ant-form-item-required:not(
+    .ant-form-item-required-mark-optional
+  )::before {
+  display: flex !important;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-label) !important;
+  text-size-adjust: 10%;
+  content: "";
+}
+.onceReferralViewWrapperNotEdit .ant-input {
+  border: unset !important;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.oneReferralViewWrapper .ant-input {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  letter-spacing: 0em;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--data-label);
+  text-size-adjust: 10%;
+  line-height: 27px;
+  padding-left: 4px;
+}
+
+.onceReferralViewWrapperNotEdit .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  /* color: var(--data-value); */
+  color: var(--data-label) !important;
+}
+.oneReferralViewWrapper .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  /* color: var(--data-value); */
+  color: var(--data-label) !important;
+}
+.onceReferralViewWrapperNotEdit .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.oneReferralViewWrapper .ant-select-single .ant-select-selector {
+  border: unset !important;
+  border-bottom: 1px solid var(--gray5) !important;
+  border-radius: unset;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 27px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: var(--data-value);
+}
+.addReferralHr {
+  margin-bottom: 40px;
+}
+.referralOwnerDiv {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.oneReferralTopToolbar1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* margin-bottom: 30px; */
+}
+.referralEditBtn {
+  background-color: var(--orange-color);
+  margin-top: 22px;
+  color: #fff;
+}
+.referralsSwitchDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.referralsSwitchDivItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--gray4);
+  padding: 5px;
+  color: var(--gray2);
+  cursor: pointer;
+  background-color: #e3edf7;
+}
+.referralsSwitchDivItem:hover {
+  background-color: var(--gray6);
+}
+.updateReferralDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.oneReferralMainWrapper {
+  height: 100%;
+}
+.updateReferralDivCol {
+  padding: 15px 20px;
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  height: 165px;
+}
+.referralInfo1 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  height: 165px;
+}
+.updateReferralFlex {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: center;
+}
+.oneReferralOwnerDiv {
+  display: flex;
+  justify-content: space-around;
+  gap: 30px;
+}
+.referralNameTitle {
+  font-size: 14px;
+  color: var(--default-background-color);
+}
+.referralsSelectViewWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: var(--default-background-color);
+  box-shadow: rgba(45, 62, 80, 0.12) 0px 1px 5px 0px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  width: 100%;
+  padding: 0px 20px;
+}
+.referralsSelectView1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.referralEditFormDiv {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+@media screen and (max-width: 768px) {
+  .referralsSelectViewWrapper {
+    display: flex;
+  }
+  .referralsSelectView1 {
+    display: flex;
+  }
+  .updateReferralDiv {
+    display: flex;
+    flex-direction: column;
+  }
+  .updateReferralFlex {
+    display: flex;
+    flex-direction: column;
+    align-items: unset;
+  }
+  .updateReferralDivCol {
+    height: unset;
+  }
+  .referralEditFormDiv {
+    flex-direction: column;
+    gap: 0px;
+  }
+}

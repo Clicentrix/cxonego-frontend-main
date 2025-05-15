@@ -1,0 +1,100 @@
+.pricingInnerDivProfile {
+  border-radius: 8px;
+  border: 1px solid #abbed1;
+  box-shadow: 0px 4px 25.5px 0px #0000001c;
+  background-color: var(--default-background-color);
+}
+.pricingInner2Div {
+  padding: 3% 3% 0% 3%;
+}
+.pricingOuterDivProfile {
+  margin: 2% 20% 4% 0%;
+}
+.pricingOuterDivProfileTable {
+  margin: 2% 0% 2% 0%;
+}
+.profilePageSubTitle {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 28px;
+  text-align: left;
+  color: var(--gray2);
+  margin-bottom: 25px;
+}
+.pricingDateWrapper {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.subscriptionDate {
+  font-size: 15px;
+  font-weight: 600;
+}
+.subscriptionDate2 {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  margin-left: 10px;
+}
+.subscriptionBtn {
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+}
+.subscriptionAddInviteWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.profileInviteBtnsWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.profileInviteSendBtn {
+  background-color: var(--orange-color);
+  color: var(--default-background-color);
+}
+.profileInviteSendBtn2 {
+  color: var(--orange-color);
+  background-color: var(--default-background-color);
+  width: 100%;
+  border: 1px solid var(--orange-color);
+}
+.noActivePlanMessage {
+  margin: 30px 0px 30px 35px;
+}
+@media screen and (max-width: 768px) {
+  .pricingSubmitBtnWrapper .ant-form-item {
+    margin-bottom: 8px;
+  }
+  .pricingSubmitBtn {
+    width: 100%;
+  }
+  .pricingSubDateWrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  .subscriptionDate {
+    margin-bottom: 10px;
+  }
+  .pricingInner2Div {
+    padding: 4%;
+  }
+  .pricingOuterDivProfileTable {
+    margin: 2% 0%;
+  }
+  .profilePageSubTitle {
+    font-size: 14px;
+  }
+}
+
+.deleteIconInTable{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  svg{
+    width: 18px;
+    height: 18px;
+  }
+}
