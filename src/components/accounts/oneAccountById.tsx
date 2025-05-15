@@ -39,6 +39,7 @@ import AllRelatedOpportunities from "../opportunities/relatedOpportunitiesListVi
 import AllRelatedActivities from "../activities/relatedActivitiesListView";
 import AllRelatedContacts from "../contacts/relatedContactsListView";
 import AllRelatedNotes from "../notes/relatedNotesListView";
+import AccountDocumentsListView from "./AccountDocumentsListView";
 import { fetchAllSalesPersonByUserId } from "../../redux/features/organizationSlice";
 
 const OneAccountById: React.FC = () => {
@@ -419,6 +420,8 @@ const OneAccountById: React.FC = () => {
                   moduleId={account?.accountId}
                 />
               </>
+            ) : relatedView === "DOCUMENTS" ? (
+              <AccountDocumentsListView accountId={account?.accountId} />
             ) : (
               <div>
                 <div className="updateAccountDiv">

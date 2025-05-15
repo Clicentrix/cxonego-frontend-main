@@ -1,5 +1,5 @@
 import axios from "axios";
-import debugLog from "../utils/debugLog";
+import debugLog, { debugApiResponse } from "../utils/debugLog";
 // Add a debug flag to enable/disable detailed logging
 const DEBUG = true;
 // Add mock data for testing/fallback
@@ -47,6 +47,19 @@ const mockDocuments = [
         id: "mock-doc-2" // Add id property for DataGrid compatibility
     }
 ];
+// Add type definitions as JSDoc comments for JavaScript
+/**
+ * @typedef {Object} UploadDocumentPayload
+ * @property {File} file - The document file to upload
+ * @property {string} description - Document description
+ * @property {string} [contactId] - Contact ID to attach document to
+ * @property {string} [accountId] - Account ID to attach document to
+ * @property {string} [startTime] - Start date for document validity
+ * @property {string} [endTime] - End date for document validity
+ * @property {string} [documentType] - Type of document (NDA, MSA, SOW, etc.)
+ * @property {string} [customDocumentType] - Custom document type if documentType is OTHER
+ * @property {string} [endpoint] - Endpoint type ('contact' or 'account')
+ */
 // Update the BASE_URL declaration with more logging
 const BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
 if (!BASE_URL) {
@@ -79,6 +92,24 @@ function isAccessToken(str) {
     return typeof str === "string" && str !== null;
 }
 /**
+ * Helper function to correctly join API paths and prevent double slashes
+ * @param {string} basePath - The base URL
+ * @param {string} path - The path to append
+ * @returns {string} - The correctly joined URL
+ */
+const joinApiPaths = (basePath, path) => {
+    if (!basePath) return path;
+    if (!path) return basePath;
+    
+    // Remove trailing slash from base if present
+    const baseNormalized = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+    
+    // Remove leading slash from path if present
+    const pathNormalized = path.startsWith('/') ? path.slice(1) : path;
+    
+    return `${baseNormalized}/${pathNormalized}`;
+};
+/**
  * Gets the url for connecting to Google Drive
  * Endpoint: GET /api/v1/document/auth/google
  * @param returnToContactId Optional contact ID to return to after authentication
@@ -103,7 +134,7 @@ export const getGoogleAuthUrl = async (returnToContactId) => {
         }
         params.append('userId', userId);
         // Construct the API endpoint using BASE_URL
-        const endpoint = `${BASE_URL}/document/auth/google`;
+        const endpoint = joinApiPaths(BASE_URL, 'document/auth/google');
         // Log the request
         debugLog2('getGoogleAuthUrl - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
         const response = await axios.get(`${endpoint}?${params.toString()}`, {
@@ -203,7 +234,7 @@ export const checkGoogleDriveConnection = async () => {
             }
         };
         // Construct full endpoint URL for improved debugging
-        const fullUrl = `${BASE_URL}/document/auth/google/connection`;
+        const fullUrl = joinApiPaths(BASE_URL, 'document/auth/google/connection');
         debugLog2('GET request to check Google Drive connection', {
             url: fullUrl,
             config: { params: config.params }
@@ -256,7 +287,7 @@ export const checkGoogleDriveConnection = async () => {
             }
             else if (error.response?.status === 404) {
                 // For 404 errors, provide detailed context for troubleshooting
-                const fullUrl = `${BASE_URL}/document/auth/google/connection`;
+                const fullUrl = joinApiPaths(BASE_URL, 'document/auth/google/connection');
                 debugLog2('URL not found (404) during connection check:', {
                     url: fullUrl,
                     userId: localStorage.getItem("userId")
@@ -289,17 +320,20 @@ export const checkGoogleDriveConnection = async () => {
     }
 };
 /**
- * Uploads a document to Google Drive and associates it with a contact
- * Endpoint: POST /api/v1/document/upload/:contactId
- * @param payload The upload payload containing file, description, and contactId
- * @returns The uploaded document data
+ * Uploads a document for a contact or account
+ * Endpoint: POST /api/v1/document/contact/:contactId or POST /api/v1/document/account/:accountId
+ * @param {UploadDocumentPayload} payload - The upload document payload including file, description, and IDs
+ * @returns The uploaded document
  */
 export const uploadDocument = async (payload) => {
     debugLog2('[uploadDocument Service] Starting upload process', {
         fileName: payload.file.name,
         contactId: payload.contactId,
+        accountId: payload.accountId,
+        endpoint: payload.endpoint,
         documentType: payload.documentType
     });
+    
     try {
         // Step 1: Validate user authentication
         const userId = localStorage.getItem("userId");
@@ -308,6 +342,7 @@ export const uploadDocument = async (payload) => {
             throw new Error('User not authenticated. Please log in first.');
         }
         debugLog2('[uploadDocument Service] Passed: User ID found', { userId });
+        
         // Step 2: Validate access token
         const currentAccessToken = localStorage.getItem("accessToken"); // Fetch current token
         if (!isAccessToken(currentAccessToken)) {
@@ -315,6 +350,7 @@ export const uploadDocument = async (payload) => {
             throw new Error('Authentication token is missing or invalid. Please log in again.');
         }
         debugLog2('[uploadDocument Service] Passed: Access token valid');
+        
         // Step 3: Verify Google Drive connection
         debugLog2('[uploadDocument Service] Checking Google Drive connection before upload');
         const connectionStatus = await checkGoogleDriveConnection();
@@ -327,18 +363,32 @@ export const uploadDocument = async (payload) => {
             throw new Error(connectErrorMsg);
         }
         debugLog2('[uploadDocument Service] Passed: Google Drive connected');
-        // Step 4: Prepare FormData and Config
+        
+        // Step 4: Determine the API endpoint based on whether contactId or accountId is provided
+        let endpointPath = '';
+        
+        if (payload.endpoint === 'account' && payload.accountId) {
+            endpointPath = `/document/account/${payload.accountId}`;
+        } else if (payload.contactId) {
+            endpointPath = `/document/contact/${payload.contactId}`;
+        } else {
+            throw new Error('Either contactId or accountId must be provided');
+        }
+        
+        // Step 5: Prepare FormData and Config
         const config = {
             headers: {
                 Authorization: `Bearer ${currentAccessToken}`,
                 "Content-Type": "multipart/form-data",
             },
         };
-        const { file, description, contactId, startTime, endTime, documentType, customDocumentType } = payload;
+        
+        const { file, description, startTime, endTime, documentType, customDocumentType } = payload;
         const formData = new FormData();
         formData.append("file", file);
         formData.append("description", description);
         formData.append("userId", userId); // Ensure userId is included in the form data
+        
         // Add new fields if provided
         if (startTime) {
             formData.append("startTime", startTime);
@@ -353,46 +403,81 @@ export const uploadDocument = async (payload) => {
                 formData.append("customDocumentType", customDocumentType);
             }
         }
+        
         debugLog2('[uploadDocument Service] FormData prepared', {
             description,
-            contactId,
+            contactId: payload.contactId,
+            accountId: payload.accountId,
+            endpoint: payload.endpoint,
             userId,
             hasStartTime: !!startTime,
             hasEndTime: !!endTime,
             documentType,
             hasCustomType: !!customDocumentType
         });
-        // Step 5: Make the API call
-        const uploadUrl = `${BASE_URL}/document/upload/${contactId}`;
+        
+        // Step 6: Make the API call
+        const uploadUrl = joinApiPaths(BASE_URL, endpointPath);
         debugLog2('[uploadDocument Service] Making POST request to upload document', {
             url: uploadUrl,
             fileSize: file.size,
             hasUserId: !!userId
         });
+        
         const response = await axios.post(uploadUrl, formData, config);
-        // Step 6: Log success
+        
+        // Step 7: Log success
         debugLog2('[uploadDocument Service] Upload successful, API response received', {
             fileName: file.name,
             responseData: response.data
         });
-        return response.data;
-    }
-    catch (error) {
-        // Step 7: Log detailed error
+        
+        // Process the response to ensure consistent format
+        let processedResponse;
+        if (response.data?.data) {
+            // If the response is wrapped in a data field
+            processedResponse = response.data.data;
+        } else if (typeof response.data === 'object' && response.data !== null) {
+            // Direct object response
+            processedResponse = response.data;
+        } else {
+            // Fallback to a minimal document object
+            processedResponse = {
+                fileName: file.name,
+                description,
+                uploadedAt: new Date().toISOString(),
+                id: `temp-${Math.random().toString(36).substring(2, 11)}`
+            };
+        }
+
+        // Ensure the document has an id for DataGrid
+        if (!processedResponse.id && processedResponse.documentId) {
+            processedResponse.id = processedResponse.documentId;
+        } else if (!processedResponse.id) {
+            processedResponse.id = `doc-${Math.random().toString(36).substring(2, 11)}`;
+        }
+
+        return processedResponse;
+    } catch (error) {
+        // Step 8: Log detailed error
         debugLog2("[uploadDocument Service] Error during upload process:", error);
+        
         if (error instanceof Error) {
             localStorage.setItem('document_upload_error', error.message);
             localStorage.setItem('document_upload_error_time', new Date().toISOString());
         }
+        
         if (axios.isAxiosError(error)) {
             const statusCode = error.response?.status;
             const responseData = error.response?.data;
             const errorMessage = responseData?.message || error.message;
+            
             debugLog2(`[uploadDocument Service] Axios Error Details: Status ${statusCode}`, {
                 response: responseData,
                 headers: error.response?.headers,
                 requestUrl: error.config?.url
             });
+            
             // Re-throw a more specific error based on status code
             if (statusCode === 401)
                 throw new Error('Authentication failed (401). Please log in again or reconnect Google Drive.');
@@ -404,9 +489,11 @@ export const uploadDocument = async (payload) => {
                 throw new Error(`Upload failed (400): ${errorMessage}. Check connection or file.`);
             if (statusCode === 404)
                 throw new Error(`Upload endpoint not found (404): ${error.config?.url}. Contact support.`);
+            
             // General Axios error
             throw new Error(`Document upload failed: ${errorMessage}`);
         }
+        
         throw error;
     }
 };
@@ -418,66 +505,246 @@ export const uploadDocument = async (payload) => {
  * @returns List of documents and pagination information
  */
 export const getContactDocuments = async (contactId, params) => {
-    debugLog2('Fetching Contact Documents', { contactId });
     try {
-        const config = {
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+        
+        // Build the query string from params
+        const queryParams = new URLSearchParams();
+        if (params.page) queryParams.append('page', params.page.toString());
+        if (params.limit) queryParams.append('limit', params.limit.toString());
+        if (params.search) queryParams.append('search', params.search);
+        
+        const apiUrl = joinApiPaths(BASE_URL, `document/contact/${contactId}`) + `?${queryParams.toString()}`;
+        
+        const response = await axios.get(apiUrl, {
             headers: {
-                Authorization: `Bearer ${isAccessToken(accessToken) ? accessToken : undefined}`,
+                Authorization: `Bearer ${accessToken}`,
             },
-        };
-        const searchParam = params.search ? `&search=${params.search}` : '';
-        const url = `${BASE_URL}/document/contact/${contactId}?page=${params.page || 1}&limit=${params.limit || 10}${searchParam}`;
-        debugLog2('GET request to fetch contact documents', { url });
-        const response = await axios.get(url, config);
-        // Transform the response data to ensure it matches the expected format
+        });
+        
+        // Use the new debug utility to analyze the structure
+        debugApiResponse(`GET ${apiUrl}`, response, 'ContactDocuments');
+        debugLog2('getContactDocuments response', response.data);
+        
+        // Handle different response formats from the backend
         let transformedData;
+        
+        // If the response has a nested data.data structure (common in many APIs)
         if (response.data?.data?.data) {
-            // Handle nested data.data structure
             transformedData = {
-                documents: Array.isArray(response.data.data.data) ? response.data.data.data.map((doc) => ({
-                    ...doc,
-                    id: doc.documentId || doc.id || `doc-${Math.random()}`,
-                    fileName: doc.fileName || 'Unnamed Document',
-                    description: doc.description || '',
-                    fileType: doc.fileType || 'unknown',
-                    fileSize: doc.fileSize || 0,
-                    uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
-                    createdAt: doc.createdAt || new Date().toISOString()
-                })) : [],
+                documents: Array.isArray(response.data.data.data) 
+                    ? response.data.data.data.map(doc => ({
+                        ...doc,
+                        id: doc.documentId || doc.id || `doc-${Math.random()}`, // Ensure each doc has an id for DataGrid
+                        fileName: doc.fileName || 'Unnamed Document',
+                        description: doc.description || '',
+                        fileType: doc.fileType || 'unknown',
+                        fileSize: doc.fileSize || 0,
+                        uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
+                        createdAt: doc.createdAt || new Date().toISOString()
+                    }))
+                    : [],
                 pagination: {
-                    page: params.page || 1,
-                    limit: params.limit || 10,
+                    page: response.data.data.page || params.page || 1,
+                    limit: response.data.data.limit || params.limit || 10,
                     total: response.data.data.total || 0
                 }
             };
-        }
-        else {
-            // If we got a direct array or need to fall back to mock data
+        } 
+        // If the response has a direct documents array
+        else if (response.data?.documents) {
             transformedData = {
-                documents: mockDocuments,
-                pagination: {
+                documents: Array.isArray(response.data.documents)
+                    ? response.data.documents.map(doc => ({
+                        ...doc,
+                        id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                    }))
+                    : [],
+                pagination: response.data.pagination || {
                     page: params.page || 1,
                     limit: params.limit || 10,
-                    total: mockDocuments.length
+                    total: response.data.documents?.length || 0
                 }
             };
         }
+        // Handle other possible response formats
+        else if (Array.isArray(response.data)) {
+            transformedData = {
+                documents: response.data.map(doc => ({
+                    ...doc,
+                    id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                })),
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: response.data.length
+                }
+            };
+        }
+        // Fallback to default format
+        else {
+            transformedData = {
+                documents: [],
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: 0
+                }
+            };
+        }
+        
         debugLog2('Transformed document data', transformedData);
         return transformedData;
-    }
-    catch (error) {
-        debugLog2("Error fetching contact documents:", error);
-        // Return mock data as fallback with proper structure
-        const fallbackData = {
-            documents: mockDocuments,
-            pagination: {
-                page: params.page || 1,
-                limit: params.limit || 10,
-                total: mockDocuments.length
-            }
+    } catch (error) {
+        // Handle API errors
+        if (axios.isAxiosError(error) && error.response) {
+            debugLog2('getContactDocuments API error', {
+                status: error.response.status,
+                data: error.response.data
+            });
+            
+            // Provide a fallback to prevent breaking UI
+            return { 
+                documents: [],
+                pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
+            };
+        }
+        
+        // For network errors or unexpected errors
+        debugLog2('getContactDocuments error', error);
+        console.error('Error fetching contact documents:', error);
+        
+        // Return empty data to prevent breaking UI
+        return { 
+            documents: [],
+            pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
         };
-        debugLog2('Returning mock data as fallback', fallbackData);
-        return fallbackData;
+    }
+};
+/**
+ * Gets documents for an account
+ * Endpoint: GET /api/v1/document/account/:accountId
+ * @param accountId The account ID
+ * @param params Parameters for pagination and filtering
+ * @returns List of documents for the account
+ */
+export const getAccountDocuments = async (accountId, params) => {
+    try {
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+        
+        // Build the query string from params
+        const queryParams = new URLSearchParams();
+        if (params.page) queryParams.append('page', params.page.toString());
+        if (params.limit) queryParams.append('limit', params.limit.toString());
+        if (params.search) queryParams.append('search', params.search);
+        
+        const apiUrl = joinApiPaths(BASE_URL, `document/account/${accountId}`) + `?${queryParams.toString()}`;
+        
+        const response = await axios.get(apiUrl, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+        
+        // Use the new debug utility to analyze the structure
+        debugApiResponse(`GET ${apiUrl}`, response, 'AccountDocuments');
+        debugLog2('getAccountDocuments response', response.data);
+        
+        // Handle different response formats from the backend
+        let transformedData;
+        
+        // If the response has a nested data.data structure (common in many APIs)
+        if (response.data?.data?.data) {
+            transformedData = {
+                documents: Array.isArray(response.data.data.data) 
+                    ? response.data.data.data.map(doc => ({
+                        ...doc,
+                        id: doc.documentId || doc.id || `doc-${Math.random()}`, // Ensure each doc has an id for DataGrid
+                        fileName: doc.fileName || 'Unnamed Document',
+                        description: doc.description || '',
+                        fileType: doc.fileType || 'unknown',
+                        fileSize: doc.fileSize || 0,
+                        uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
+                        createdAt: doc.createdAt || new Date().toISOString()
+                    }))
+                    : [],
+                pagination: {
+                    page: response.data.data.page || params.page || 1,
+                    limit: response.data.data.limit || params.limit || 10,
+                    total: response.data.data.total || 0
+                }
+            };
+        } 
+        // If the response has a direct documents array
+        else if (response.data?.documents) {
+            transformedData = {
+                documents: Array.isArray(response.data.documents)
+                    ? response.data.documents.map(doc => ({
+                        ...doc,
+                        id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                    }))
+                    : [],
+                pagination: response.data.pagination || {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: response.data.documents?.length || 0
+                }
+            };
+        }
+        // Handle other possible response formats
+        else if (Array.isArray(response.data)) {
+            transformedData = {
+                documents: response.data.map(doc => ({
+                    ...doc,
+                    id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                })),
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: response.data.length
+                }
+            };
+        }
+        // Fallback to default format
+        else {
+            transformedData = {
+                documents: [],
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: 0
+                }
+            };
+        }
+        
+        debugLog2('Transformed account document data', transformedData);
+        return transformedData;
+    } catch (error) {
+        // Handle API errors
+        if (axios.isAxiosError(error) && error.response) {
+            debugLog2('getAccountDocuments API error', {
+                status: error.response.status,
+                data: error.response.data
+            });
+            
+            // Provide a fallback to prevent breaking UI
+            return { 
+                documents: [],
+                pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
+            };
+        }
+        
+        // For network errors or unexpected errors
+        debugLog2('getAccountDocuments error', error);
+        console.error('Error fetching account documents:', error);
+        
+        // Return empty data to prevent breaking UI
+        return { 
+            documents: [],
+            pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
+        };
     }
 };
 /**
@@ -495,7 +762,7 @@ export const deleteDocument = async (documentId) => {
             },
         };
         debugLog2('DELETE request to /document/' + documentId, config);
-        const response = await axios.delete(`${BASE_URL}/document/${documentId}`, config);
+        const response = await axios.delete(joinApiPaths(BASE_URL, `document/${documentId}`), config);
         debugLog2('Delete Document Response:', response.data);
         return response.data;
     }
@@ -541,7 +808,7 @@ export const getGoogleReconnectUrl = async (returnToContactId) => {
         params.append('userId', userId);
         params.append('forceConsent', 'true'); // Force the consent screen to appear for reconnection
         // Construct the API endpoint using BASE_URL
-        const endpoint = `${BASE_URL}/document/auth/google/reconnect`;
+        const endpoint = joinApiPaths(BASE_URL, 'document/auth/google/reconnect');
         // Log the request
         debugLog2('getGoogleReconnectUrl - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
         const response = await axios.get(`${endpoint}?${params.toString()}`, {
@@ -628,7 +895,7 @@ export const disconnectGoogleDrive = async () => {
         const params = new URLSearchParams();
         params.append('userId', userId);
         // Construct the API endpoint using BASE_URL
-        const endpoint = `${BASE_URL}/document/google/disconnect`;
+        const endpoint = joinApiPaths(BASE_URL, 'document/google/disconnect');
         // Log the request
         debugLog2('disconnectGoogleDrive - Making request to:', { endpoint, params: Object.fromEntries(params.entries()) });
         const response = await axios.delete(`${endpoint}?${params.toString()}`, {

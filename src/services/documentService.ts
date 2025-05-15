@@ -131,11 +131,13 @@ export interface DocumentParams {
 export interface UploadDocumentPayload {
   file: File;
   description: string;
-  contactId: string;
+  contactId?: string;
+  accountId?: string;
   startTime?: string | null;
   endTime?: string | null;
   documentType?: string | null;
   customDocumentType?: string;
+  endpoint?: string;
 }
 
 /**
@@ -377,217 +379,197 @@ export const checkGoogleDriveConnection = async () => {
 };
 
 /**
- * Uploads a document to Google Drive and associates it with a contact
- * Endpoint: POST /api/v1/document/upload/:contactId
- * @param payload The upload payload containing file, description, and contactId
- * @returns The uploaded document data
+ * Uploads a document for a contact or account
+ * Endpoint: POST /api/v1/document/contact/:contactId or POST /api/v1/document/account/:accountId
+ * @param payload The upload document payload including file, description, and contact/account ID
+ * @returns The uploaded document
  */
 export const uploadDocument = async (payload: UploadDocumentPayload) => {
-  debugLog2('[uploadDocument Service] Starting upload process', {
-    fileName: payload.file.name,
-    contactId: payload.contactId,
-    documentType: payload.documentType
-  });
   try {
-    // Step 1: Validate user authentication
     const userId = localStorage.getItem("userId");
-    if (!userId) {
-      debugLog2('[uploadDocument Service] Failed: User ID not found');
-      throw new Error('User not authenticated. Please log in first.');
-    }
-    debugLog2('[uploadDocument Service] Passed: User ID found', { userId });
-
-    // Step 2: Validate access token
-    const currentAccessToken = localStorage.getItem("accessToken"); // Fetch current token
-    if (!isAccessToken(currentAccessToken)) {
-      debugLog2('[uploadDocument Service] Failed: Invalid or missing access token', { hasToken: !!currentAccessToken });
-      throw new Error('Authentication token is missing or invalid. Please log in again.');
-    }
-    debugLog2('[uploadDocument Service] Passed: Access token valid');
-
-    // Step 3: Verify Google Drive connection
-    debugLog2('[uploadDocument Service] Checking Google Drive connection before upload');
-    const connectionStatus = await checkGoogleDriveConnection();
-    if (!connectionStatus.connected) {
-      debugLog2('[uploadDocument Service] Failed: Google Drive not connected', connectionStatus);
-      // Construct a more informative error message
-      const connectErrorMsg = connectionStatus.message 
-          ? `Google Drive is not connected: ${connectionStatus.message}. Please connect/reconnect.`
-          : 'Google Drive is not connected. Please connect to Google Drive first.';
-      throw new Error(connectErrorMsg);
-    }
-    debugLog2('[uploadDocument Service] Passed: Google Drive connected');
-
-    // Step 4: Prepare FormData and Config
-    const config = {
-      headers: {
-        Authorization: `Bearer ${currentAccessToken}`, // Use the fetched token
-        "Content-Type": "multipart/form-data",
-      },
-    };
+    const accessToken = localStorage.getItem("accessToken");
     
-    const { file, description, contactId, startTime, endTime, documentType, customDocumentType } = payload;
+    // Determine the API endpoint based on whether contactId or accountId is provided
+    let endpointPath = '';
+    
+    if (payload.endpoint === 'account' && payload.accountId) {
+      endpointPath = `/document/account/${payload.accountId}`;
+    } else if (payload.contactId) {
+      endpointPath = `/document/contact/${payload.contactId}`;
+    } else {
+      throw new Error('Either contactId or accountId must be provided');
+    }
+    
+    // Create a FormData object to handle the multipart/form-data
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("description", description);
-    formData.append("userId", userId); // Ensure userId is included in the form data
+    formData.append('file', payload.file);
+    formData.append('description', payload.description);
     
-    // Add new fields if provided
-    if (startTime) {
-      formData.append("startTime", startTime);
+    // Add optional fields if provided
+    if (payload.startTime) {
+      formData.append('startTime', payload.startTime);
+    }
+    if (payload.endTime) {
+      formData.append('endTime', payload.endTime);
+    }
+    if (payload.documentType) {
+      formData.append('documentType', payload.documentType);
+    }
+    if (payload.documentType === 'OTHER' && payload.customDocumentType) {
+      formData.append('customDocumentType', payload.customDocumentType);
     }
     
-    if (endTime) {
-      formData.append("endTime", endTime);
-    }
+    const apiUrl = `${BASE_URL}${endpointPath}`;
+    debugLog2(`Uploading document to ${apiUrl}`, { 
+      fileSize: payload.file.size, 
+      fileName: payload.file.name,
+      endpoint: payload.endpoint,
+      contactId: payload.contactId,
+      accountId: payload.accountId
+    });
     
-    if (documentType) {
-      formData.append("documentType", documentType);
+    const response = await axios.post(apiUrl, formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'multipart/form-data'
+      },
+    });
+    
+    debugLog2('Upload document response', response.data);
+    return response.data;
+  } catch (error) {
+    // Handle different error types
+    if (axios.isAxiosError(error) && error.response) {
+      // API error with response
+      const status = error.response.status;
+      const errorData = error.response.data;
       
-      // Only add customDocumentType if documentType is 'OTHER'
-      if (documentType === 'OTHER' && customDocumentType) {
-        formData.append("customDocumentType", customDocumentType);
+      debugLog2('Upload document API error', {
+        status,
+        data: errorData,
+        message: error.message
+      });
+      
+      // Handle specific error codes
+      if (status === 413) {
+        throw new Error('File is too large. Maximum size is 5MB.');
+      } else if (status === 415) {
+        throw new Error('Unsupported file format.');
+      } else if (status === 401) {
+        throw new Error('Authentication failed. Please log in again.');
+      } else if (status === 403) {
+        throw new Error('You do not have permission to upload documents.');
+      } else if (errorData && errorData.message) {
+        throw new Error(errorData.message);
       }
     }
     
-    debugLog2('[uploadDocument Service] FormData prepared', { 
-      description, 
-      contactId, 
-      userId,
-      hasStartTime: !!startTime,
-      hasEndTime: !!endTime,
-      documentType,
-      hasCustomType: !!customDocumentType
-    });
-
-    // Step 5: Make the API call
-    const uploadUrl = `${BASE_URL}/document/upload/${contactId}`;
-    debugLog2('[uploadDocument Service] Making POST request to upload document', {
-      url: uploadUrl,
-      fileSize: file.size,
-      hasUserId: !!userId
-    });
-    
-    const response = await axios.post(uploadUrl, formData, config);
-    
-    // Step 6: Log success
-    debugLog2('[uploadDocument Service] Upload successful, API response received', {
-      fileName: file.name,
-      responseData: response.data
-    });
-    
-    return response.data;
-  } catch (error) {
-    // Step 7: Log detailed error
-    debugLog2("[uploadDocument Service] Error during upload process:", error);
+    // For network errors or other unexpected errors
+    debugLog2('Upload document error', error);
     
     if (error instanceof Error) {
-      localStorage.setItem('document_upload_error', error.message);
-      localStorage.setItem('document_upload_error_time', new Date().toISOString());
+      throw error;
+    } else {
+      throw new Error('An unknown error occurred while uploading the document.');
     }
-    
-    if (axios.isAxiosError(error)) {
-      const statusCode = error.response?.status;
-      const responseData = error.response?.data;
-      const errorMessage = responseData?.message || error.message;
-      
-      debugLog2(`[uploadDocument Service] Axios Error Details: Status ${statusCode}`, {
-        response: responseData,
-        headers: error.response?.headers,
-        requestUrl: error.config?.url
-      });
-      
-      // Re-throw a more specific error based on status code
-      if (statusCode === 401) throw new Error('Authentication failed (401). Please log in again or reconnect Google Drive.');
-      if (statusCode === 403) throw new Error('Permission denied (403). Check Google Drive permissions or reconnect.');
-      if (statusCode === 413) throw new Error('File too large (413). Maximum size is 5MB.');
-      if (statusCode === 400) throw new Error(`Upload failed (400): ${errorMessage}. Check connection or file.`);
-      if (statusCode === 404) throw new Error(`Upload endpoint not found (404): ${error.config?.url}. Contact support.`);
-      
-      // General Axios error
-      throw new Error(`Document upload failed: ${errorMessage}`);
-    }
-    
-    throw error;
   }
 };
 
 /**
- * Gets a list of documents for a specific contact
+ * Gets documents for a contact
  * Endpoint: GET /api/v1/document/contact/:contactId
- * @param contactId The ID of the contact
- * @param params Pagination and search parameters
- * @returns List of documents and pagination information
+ * @param contactId The contact ID
+ * @param params Parameters for pagination and filtering
+ * @returns List of documents for the contact
  */
 export const getContactDocuments = async (contactId: string, params: DocumentParams) => {
-  debugLog2('Fetching Contact Documents', { contactId });
   try {
-    const config = {
+    const userId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+    
+    // Build the query string from params
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    
+    const apiUrl = `${BASE_URL}/document/contact/${contactId}?${queryParams.toString()}`;
+    
+    const response = await axios.get(apiUrl, {
       headers: {
-        Authorization: `Bearer ${
-          isAccessToken(accessToken) ? accessToken : undefined
-        }`,
+        Authorization: `Bearer ${accessToken}`,
       },
-    };
+    });
     
-    const searchParam = params.search ? `&search=${params.search}` : '';
-    const url = `${BASE_URL}/document/contact/${contactId}?page=${params.page || 1}&limit=${params.limit || 10}${searchParam}`;
-
-    debugLog2('GET request to fetch contact documents', { url });
-    const response = await axios.get(url, config);
-    
-    // Transform the response data to ensure it matches the expected format
-    let transformedData;
-    
-    if (response.data?.data?.data) {
-      // Handle nested data.data structure
-      transformedData = {
-        documents: Array.isArray(response.data.data.data) ? response.data.data.data.map((doc: any) => ({
-          ...doc,
-          id: doc.documentId || doc.id || `doc-${Math.random()}`,
-          fileName: doc.fileName || 'Unnamed Document',
-          description: doc.description || '',
-          fileType: doc.fileType || 'unknown',
-          fileSize: doc.fileSize || 0,
-          uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
-          createdAt: doc.createdAt || new Date().toISOString()
-        })) : [],
-        pagination: {
-          page: params.page || 1,
-          limit: params.limit || 10,
-          total: response.data.data.total || 0
-        }
-      };
-    } else {
-      // If we got a direct array or need to fall back to mock data
-      transformedData = {
-        documents: mockDocuments,
-        pagination: {
-          page: params.page || 1,
-          limit: params.limit || 10,
-          total: mockDocuments.length
-        }
-      };
+    debugLog2('getContactDocuments response', response.data);
+    return response.data;
+  } catch (error) {
+    // Handle API errors
+    if (axios.isAxiosError(error) && error.response) {
+      debugLog2('getContactDocuments API error', {
+        status: error.response.status,
+        data: error.response.data
+      });
+      
+      // Provide a fallback to prevent breaking UI
+      return { documents: [], pagination: { page: 1, limit: 10, total: 0 } };
     }
     
-    debugLog2('Transformed document data', transformedData);
-    return transformedData;
+    // For network errors or unexpected errors
+    debugLog2('getContactDocuments error', error);
+    console.error('Error fetching contact documents:', error);
     
+    // Return empty data to prevent breaking UI
+    return { documents: [], pagination: { page: 1, limit: 10, total: 0 } };
+  }
+};
+
+/**
+ * Gets documents for an account
+ * Endpoint: GET /api/v1/document/account/:accountId
+ * @param accountId The account ID
+ * @param params Parameters for pagination and filtering
+ * @returns List of documents for the account
+ */
+export const getAccountDocuments = async (accountId: string, params: DocumentParams) => {
+  try {
+    const userId = localStorage.getItem("userId");
+    const accessToken = localStorage.getItem("accessToken");
+    
+    // Build the query string from params
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    
+    const apiUrl = `${BASE_URL}/document/account/${accountId}?${queryParams.toString()}`;
+    
+    const response = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    
+    debugLog2('getAccountDocuments response', response.data);
+    return response.data;
   } catch (error) {
-    debugLog2("Error fetching contact documents:", error);
+    // Handle API errors
+    if (axios.isAxiosError(error) && error.response) {
+      debugLog2('getAccountDocuments API error', {
+        status: error.response.status,
+        data: error.response.data
+      });
+      
+      // Provide a fallback to prevent breaking UI
+      return { documents: [], pagination: { page: 1, limit: 10, total: 0 } };
+    }
     
-    // Return mock data as fallback with proper structure
-    const fallbackData = {
-      documents: mockDocuments,
-      pagination: {
-        page: params.page || 1,
-        limit: params.limit || 10,
-        total: mockDocuments.length
-      }
-    };
+    // For network errors or unexpected errors
+    debugLog2('getAccountDocuments error', error);
+    console.error('Error fetching account documents:', error);
     
-    debugLog2('Returning mock data as fallback', fallbackData);
-    return fallbackData;
+    // Return empty data to prevent breaking UI
+    return { documents: [], pagination: { page: 1, limit: 10, total: 0 } };
   }
 };
 

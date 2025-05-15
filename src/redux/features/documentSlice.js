@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { message } from "antd";
-import { checkGoogleDriveConnection, deleteDocument, getContactDocuments, getGoogleAuthUrl, uploadDocument, getGoogleReconnectUrl, disconnectGoogleDrive, } from "../../services/documentService";
+import { checkGoogleDriveConnection, deleteDocument, getContactDocuments, getAccountDocuments, getGoogleAuthUrl, uploadDocument, getGoogleReconnectUrl, disconnectGoogleDrive, } from "../../services/documentService";
 import debugLog from "../../utils/debugLog";
 // Initial empty document
 export const emptyDocument = {
@@ -132,7 +132,16 @@ export const uploadDocumentThunk = createAsyncThunk("documents/uploadDocument", 
 // Get documents for a contact
 export const getContactDocumentsThunk = createAsyncThunk("documents/getContactDocuments", async ({ contactId, params }) => {
     try {
+        debugLog(`Fetching contact documents for contact ID: ${contactId}`, { params }, 'DocumentSlice');
         const response = await getContactDocuments(contactId, params);
+        
+        // Log detailed response information for debugging
+        debugLog('Contact documents API response received', {
+            hasDocuments: Array.isArray(response.documents) && response.documents.length > 0,
+            documentCount: Array.isArray(response.documents) ? response.documents.length : 0,
+            pagination: response.pagination || 'No pagination info'
+        }, 'DocumentSlice');
+        
         // Handle the response format directly from the service
         const documents = response.documents || [];
         const pagination = response.pagination || {
@@ -140,14 +149,23 @@ export const getContactDocumentsThunk = createAsyncThunk("documents/getContactDo
             limit: params.limit || 10,
             total: 0
         };
-        return {
+        
+        const result = {
             documents: documents,
             total: pagination.total || documents.length,
             page: pagination.page || params.page || 1
         };
+        
+        debugLog('Returning processed document data', {
+            documentCount: result.documents.length,
+            total: result.total,
+            page: result.page
+        }, 'DocumentSlice');
+        
+        return result;
     }
     catch (error) {
-        console.error("Error fetching documents:", error);
+        console.error("Error fetching contact documents:", error);
         return {
             documents: [],
             total: 0,
@@ -155,13 +173,75 @@ export const getContactDocumentsThunk = createAsyncThunk("documents/getContactDo
         };
     }
 });
+// Get documents for an account
+export const getAccountDocumentsThunk = createAsyncThunk(
+  "documents/getAccountDocuments",
+  async ({ accountId, params, endpoint = 'account' }) => {
+    try {
+        debugLog(`Fetching account documents for account ID: ${accountId}`, { params }, 'DocumentSlice');
+        const response = await getAccountDocuments(accountId, params);
+        
+        // Log detailed response information for debugging
+        debugLog('Account documents API response received', {
+            hasDocuments: Array.isArray(response.documents) && response.documents.length > 0,
+            documentCount: Array.isArray(response.documents) ? response.documents.length : 0,
+            pagination: response.pagination || 'No pagination info',
+            firstDocument: Array.isArray(response.documents) && response.documents.length > 0 ? 
+                { id: response.documents[0].id, fileName: response.documents[0].fileName } : 'No documents'
+        }, 'DocumentSlice');
+        
+        // Handle the response format directly from the service
+        const documents = response.documents || [];
+        const pagination = response.pagination || {
+            page: params.page || 1,
+            limit: params.limit || 10,
+            total: 0
+        };
+        
+        const result = {
+            documents: documents,
+            total: pagination.total || documents.length,
+            page: pagination.page || params.page || 1
+        };
+        
+        debugLog('Returning processed account document data', {
+            documentCount: result.documents.length,
+            total: result.total,
+            page: result.page
+        }, 'DocumentSlice');
+        
+        return result;
+    } catch (error) {
+      console.error("Error fetching account documents:", error);
+      debugLog("Error fetching account documents", { 
+          accountId, 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          errorObject: error
+      }, 'DocumentSlice');
+      
+      return {
+          documents: [],
+          total: 0,
+          page: 1
+      };
+    }
+  }
+);
 // Delete document and refresh list
-export const deleteDocumentAndRefresh = createAsyncThunk("documents/deleteDocumentAndRefresh", async ({ documentId, contactId, params }, { dispatch }) => {
+export const deleteDocumentAndRefresh = createAsyncThunk(
+  "documents/deleteDocumentAndRefresh", 
+  async ({ documentId, contactId, accountId, params, endpoint = 'contact' }, { dispatch }) => {
     try {
         await deleteDocument(documentId);
         message.success("Document deleted successfully");
-        // Refresh the documents list
-        dispatch(getContactDocumentsThunk({ contactId, params }));
+        
+        // Refresh the documents list based on endpoint type
+        if (endpoint === 'account' && accountId) {
+            dispatch(getAccountDocumentsThunk({ accountId, params, endpoint }));
+        } else if (contactId) {
+            dispatch(getContactDocumentsThunk({ contactId, params }));
+        }
+        
         return { success: true };
     }
     catch (error) {
@@ -248,6 +328,24 @@ const documentSlice = createSlice({
         });
         builder.addCase(getContactDocumentsThunk.rejected, (state, action) => {
             console.error('Documents fetch rejected:', action.error);
+            state.getDocumentLoader = false;
+            state.documents = [];
+            state.totalDocuments = 0;
+        });
+        
+        // Get Account Documents
+        builder.addCase(getAccountDocumentsThunk.pending, (state) => {
+            state.getDocumentLoader = true;
+        });
+        builder.addCase(getAccountDocumentsThunk.fulfilled, (state, action) => {
+            state.getDocumentLoader = false;
+            state.documents = Array.isArray(action.payload.documents)
+                ? action.payload.documents
+                : [];
+            state.totalDocuments = action.payload.total || state.documents.length;
+            state.pagination.page = action.payload.page;
+        });
+        builder.addCase(getAccountDocumentsThunk.rejected, (state) => {
             state.getDocumentLoader = false;
             state.documents = [];
             state.totalDocuments = 0;

@@ -7,6 +7,7 @@ import {
   checkGoogleDriveConnection,
   deleteDocument,
   getContactDocuments,
+  getAccountDocuments,
   getGoogleAuthUrl,
   uploadDocument,
   getGoogleReconnectUrl,
@@ -159,11 +160,13 @@ export const uploadDocumentThunk = createAsyncThunk(
   async (payload: { 
     file: File; 
     description: string; 
-    contactId: string;
+    contactId?: string;
+    accountId?: string;
     startTime?: string | null;
     endTime?: string | null;
     documentType?: string | null;
     customDocumentType?: string;
+    endpoint?: string;
   }, { rejectWithValue }) => {
     debugLog('[uploadDocumentThunk] Starting', payload, 'DocumentSlice');
     try {
@@ -209,7 +212,38 @@ export const getContactDocumentsThunk = createAsyncThunk(
         page: pagination.page || params.page || 1
       };
     } catch (error) {
-      console.error("Error fetching documents:", error);
+      console.error("Error fetching contact documents:", error);
+      return {
+        documents: [],
+        total: 0,
+        page: 1
+      };
+    }
+  }
+);
+
+// Get documents for an account
+export const getAccountDocumentsThunk = createAsyncThunk(
+  "documents/getAccountDocuments",
+  async ({ accountId, params, endpoint = 'account' }: { accountId: string; params: DocumentParams; endpoint?: string }) => {
+    try {
+      const response = await getAccountDocuments(accountId, params);
+      
+      // Handle the response format directly from the service
+      const documents = response.documents || [];
+      const pagination = response.pagination || {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        total: 0
+      };
+      
+      return {
+        documents: documents,
+        total: pagination.total || documents.length,
+        page: pagination.page || params.page || 1
+      };
+    } catch (error) {
+      console.error("Error fetching account documents:", error);
       return {
         documents: [],
         total: 0,
@@ -222,12 +256,20 @@ export const getContactDocumentsThunk = createAsyncThunk(
 // Delete document and refresh list
 export const deleteDocumentAndRefresh = createAsyncThunk(
   "documents/deleteDocumentAndRefresh",
-  async ({ documentId, contactId, params }: { documentId: string; contactId: string; params: DocumentParams }, { dispatch }) => {
+  async ({ documentId, contactId, accountId, params, endpoint = 'contact' }: 
+    { documentId: string; contactId?: string; accountId?: string; params: DocumentParams; endpoint?: string }, 
+    { dispatch }) => {
     try {
       await deleteDocument(documentId);
       message.success("Document deleted successfully");
-      // Refresh the documents list
-      dispatch(getContactDocumentsThunk({ contactId, params }));
+      
+      // Refresh the documents list based on endpoint type
+      if (endpoint === 'account' && accountId) {
+        dispatch(getAccountDocumentsThunk({ accountId, params, endpoint }));
+      } else if (contactId) {
+        dispatch(getContactDocumentsThunk({ contactId, params }));
+      }
+      
       return { success: true };
     } catch (error) {
       console.error("Error deleting document:", error);
@@ -304,26 +346,28 @@ const documentSlice = createSlice({
     });
     builder.addCase(getContactDocumentsThunk.fulfilled, (state, action) => {
       state.getDocumentLoader = false;
-      
-      // Always ensure we have an array, even if empty
-      state.documents = Array.isArray(action.payload.documents) 
-        ? action.payload.documents 
-        : [];
-        
-      // Set total documents with fallback to array length
-      state.totalDocuments = action.payload.total || state.documents.length;
-        
-      // Update pagination
-      state.pagination = {
-        page: action.payload.page || 1,
-        total: state.totalDocuments,
-      };
+      state.documents = action.payload.documents;
+      state.totalDocuments = action.payload.total;
+      state.pagination.page = action.payload.page;
     });
-    builder.addCase(getContactDocumentsThunk.rejected, (state, action) => {
-      console.error('Documents fetch rejected:', action.error);
+    builder.addCase(getContactDocumentsThunk.rejected, (state) => {
       state.getDocumentLoader = false;
       state.documents = [];
-      state.totalDocuments = 0;
+    });
+    
+    // Get Account Documents
+    builder.addCase(getAccountDocumentsThunk.pending, (state) => {
+      state.getDocumentLoader = true;
+    });
+    builder.addCase(getAccountDocumentsThunk.fulfilled, (state, action) => {
+      state.getDocumentLoader = false;
+      state.documents = action.payload.documents;
+      state.totalDocuments = action.payload.total;
+      state.pagination.page = action.payload.page;
+    });
+    builder.addCase(getAccountDocumentsThunk.rejected, (state) => {
+      state.getDocumentLoader = false;
+      state.documents = [];
     });
   },
 });

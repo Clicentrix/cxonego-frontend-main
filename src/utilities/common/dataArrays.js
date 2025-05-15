@@ -107,6 +107,7 @@ export const accountsRelatedViewOptions = [
     { value: "CONTACTS", label: "Contacts" },
     { value: "ACTIVITIES", label: "Activities" },
     { value: "NOTES", label: "Notes" },
+    { value: "DOCUMENTS", label: "Documents" },
 ];
 export const activitiesRelatedViewOptions = [
     { value: "SELECT", label: "select related view" },
