@@ -7,15 +7,15 @@ on:
   workflow_dispatch: 
 
 env:
-  PROJECT_NAME: cxonego-frontend-main
+  PROJECT_NAME: cxonego-frontend-mai
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-lates
 
     steps:
     - name: 🧾 Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@
 
     - name: 🔧 Setup Node.js
       uses: actions/setup-node@v3
