@@ -60,15 +60,28 @@ const mockDocuments = [
  * @property {string} [customDocumentType] - Custom document type if documentType is OTHER
  * @property {string} [endpoint] - Endpoint type ('contact' or 'account')
  */
-// Update the BASE_URL declaration with more logging
-const BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
+// Update the BASE_URL declaration with more logging and better fallbacks
+const PREFERRED_BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
+const FALLBACK_BASE_URL = 'http://localhost:8000/api/v1';
+
+// Determine the actual BASE_URL to use
+let BASE_URL = PREFERRED_BASE_URL;
+
 if (!BASE_URL) {
     console.error('ERROR: VITE_REACT_APP_BASE_URL is not defined in environment variables!');
-    console.warn('Falling back to default API URL: http://localhost:8000/api/v1');
+    console.warn(`Falling back to default API URL: ${FALLBACK_BASE_URL}`);
+    BASE_URL = FALLBACK_BASE_URL;
 }
+
+// Remove any trailing slash to ensure consistent URL formation
+if (BASE_URL.endsWith('/')) {
+    BASE_URL = BASE_URL.slice(0, -1);
+    console.log(`Removed trailing slash from BASE_URL, now: ${BASE_URL}`);
+}
+
 // Log environment information for debugging
 console.log('=== Document Service Environment ===');
-console.log('API Base URL:', BASE_URL || 'http://localhost:8000/api/v1');
+console.log('API Base URL:', BASE_URL);
 console.log('Environment:', import.meta.env.VITE_ENVIRONMENT || 'not specified');
 console.log('Google Callback URLs:', {
     frontend: import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL,
@@ -321,7 +334,7 @@ export const checkGoogleDriveConnection = async () => {
 };
 /**
  * Uploads a document for a contact or account
- * Endpoint: POST /api/v1/document/contact/:contactId or POST /api/v1/document/account/:accountId
+ * Endpoint: POST /api/v1/document/upload/:contactId or POST /api/v1/document/account/:accountId
  * @param {UploadDocumentPayload} payload - The upload document payload including file, description, and IDs
  * @returns The uploaded document
  */
@@ -333,6 +346,11 @@ export const uploadDocument = async (payload) => {
         endpoint: payload.endpoint,
         documentType: payload.documentType
     });
+    
+    // Define endpointPath outside the try block to ensure it's accessible in the catch block
+    let endpointPath = '';
+    let documentType = '';
+    let customDocumentType = '';
     
     try {
         // Step 1: Validate user authentication
@@ -365,12 +383,10 @@ export const uploadDocument = async (payload) => {
         debugLog2('[uploadDocument Service] Passed: Google Drive connected');
         
         // Step 4: Determine the API endpoint based on whether contactId or accountId is provided
-        let endpointPath = '';
-        
         if (payload.endpoint === 'account' && payload.accountId) {
             endpointPath = `/document/account/${payload.accountId}`;
         } else if (payload.contactId) {
-            endpointPath = `/document/contact/${payload.contactId}`;
+            endpointPath = `/document/upload/${payload.contactId}`;
         } else {
             throw new Error('Either contactId or accountId must be provided');
         }
@@ -383,7 +399,10 @@ export const uploadDocument = async (payload) => {
             },
         };
         
-        const { file, description, startTime, endTime, documentType, customDocumentType } = payload;
+        const { file, description, startTime, endTime } = payload;
+        documentType = payload.documentType || '';
+        customDocumentType = payload.customDocumentType || '';
+        
         const formData = new FormData();
         formData.append("file", file);
         formData.append("description", description);
@@ -418,12 +437,43 @@ export const uploadDocument = async (payload) => {
         
         // Step 6: Make the API call
         const uploadUrl = joinApiPaths(BASE_URL, endpointPath);
+
+        // More detailed URL debugging
+        console.log('==== DOCUMENT UPLOAD DEBUG ====');
+        console.log('Upload URL:', uploadUrl);
+        console.log('Upload endpoint path:', endpointPath);
+        console.log('BASE_URL used:', BASE_URL);
+        console.log('File details:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+        console.log('Document type:', documentType);
+        console.log('Request method:', 'POST');
+        console.log('============================');
+
         debugLog2('[uploadDocument Service] Making POST request to upload document', {
             url: uploadUrl,
             fileSize: file.size,
             hasUserId: !!userId
         });
-        
+
+        // First try to check if the endpoint is reachable
+        try {
+            // Make a quick HEAD request to check endpoint availability
+            await axios.head(uploadUrl, {
+                headers: { Authorization: `Bearer ${currentAccessToken}` },
+                timeout: 5000 // 5 second timeout
+            });
+            console.log(`✅ Endpoint verification successful: ${uploadUrl} is available`);
+        } catch (headError) {
+            console.warn(`⚠️ Endpoint verification failed: ${uploadUrl} may not be available`, {
+                status: headError.response?.status,
+                statusText: headError.response?.statusText
+            });
+            // Continue with the actual request even if head check fails
+        }
+
         const response = await axios.post(uploadUrl, formData, config);
         
         // Step 7: Log success
@@ -487,8 +537,31 @@ export const uploadDocument = async (payload) => {
                 throw new Error('File too large (413). Maximum size is 5MB.');
             if (statusCode === 400)
                 throw new Error(`Upload failed (400): ${errorMessage}. Check connection or file.`);
-            if (statusCode === 404)
-                throw new Error(`Upload endpoint not found (404): ${error.config?.url}. Contact support.`);
+            if (statusCode === 404) {
+                console.error('==== 404 ERROR DIAGNOSTIC INFO ====');
+                console.error('Endpoint not found:', error.config?.url);
+                console.error('BASE_URL being used:', BASE_URL);
+                console.error('Upload endpoint path:', endpointPath);
+                console.error('Document types provided:', { documentType, customDocumentType });
+                console.error('Contact/Account ID:', payload.contactId || payload.accountId);
+                console.error('Response data:', error.response?.data);
+                console.error('================================');
+                
+                // Get the hostname part of the URL for troubleshooting
+                let hostname = 'unknown';
+                try {
+                    hostname = new URL(error.config?.url).hostname;
+                } catch(e) {}
+                
+                throw new Error(`Upload endpoint not found (404): ${error.config?.url}. 
+                This could be due to:
+                1. The API server at ${hostname} is not running
+                2. The endpoint does not exist on the server
+                3. The path is incorrect (check for typos)
+                4. CORS is blocking the request
+                
+                Please check that your backend server is running and has these endpoints configured.`);
+            }
             
             // General Axios error
             throw new Error(`Document upload failed: ${errorMessage}`);
@@ -515,34 +588,71 @@ export const getContactDocuments = async (contactId, params) => {
         if (params.limit) queryParams.append('limit', params.limit.toString());
         if (params.search) queryParams.append('search', params.search);
         
+        // Ensure the contact ID is valid
+        if (!contactId || contactId === 'undefined' || contactId === 'null') {
+            console.error('Invalid contact ID provided:', contactId);
+            return { 
+                documents: [],
+                pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
+            };
+        }
+        
+        // Construct the endpoint URL - try without the initial slash to match working account endpoint pattern
         const apiUrl = joinApiPaths(BASE_URL, `document/contact/${contactId}`) + `?${queryParams.toString()}`;
         
-        const response = await axios.get(apiUrl, {
+        // More detailed URL debugging
+        console.log('==== GET CONTACT DOCUMENTS DEBUG ====');
+        console.log('API URL:', apiUrl);
+        console.log('Contact ID:', contactId);
+        console.log('Params:', params);
+        console.log('BASE_URL used:', BASE_URL);
+        console.log('Authorization header present:', !!accessToken);
+        console.log('Request method:', 'GET');
+        console.log('==============================');
+        
+        // Try a direct axios request instead of axios.get to have more control
+        const response = await axios({
+            method: 'GET',
+            url: apiUrl,
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
             },
+            timeout: 10000 // 10 second timeout
         });
         
         // Use the new debug utility to analyze the structure
         debugApiResponse(`GET ${apiUrl}`, response, 'ContactDocuments');
-        debugLog2('getContactDocuments response', response.data);
+        debugLog2('getContactDocuments raw response', response);
+        debugLog2('getContactDocuments response.data', response.data);
         
         // Handle different response formats from the backend
         let transformedData;
+        
+        // IMPORTANT - log the exact data structure for debugging
+        console.log('Contact Documents Response Structure:', {
+            hasData: !!response.data,
+            isObject: typeof response.data === 'object',
+            isArray: Array.isArray(response.data),
+            topLevelKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : [],
+            hasNestedData: response.data && response.data.data && typeof response.data.data === 'object',
+            hasDocuments: response.data && response.data.documents && Array.isArray(response.data.documents),
+            documentCount: response.data && response.data.documents && Array.isArray(response.data.documents) ? response.data.documents.length : 0
+        });
         
         // If the response has a nested data.data structure (common in many APIs)
         if (response.data?.data?.data) {
             transformedData = {
                 documents: Array.isArray(response.data.data.data) 
                     ? response.data.data.data.map(doc => ({
-                        ...doc,
+                    ...doc,
                         id: doc.documentId || doc.id || `doc-${Math.random()}`, // Ensure each doc has an id for DataGrid
-                        fileName: doc.fileName || 'Unnamed Document',
-                        description: doc.description || '',
-                        fileType: doc.fileType || 'unknown',
-                        fileSize: doc.fileSize || 0,
-                        uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
-                        createdAt: doc.createdAt || new Date().toISOString()
+                    fileName: doc.fileName || 'Unnamed Document',
+                    description: doc.description || '',
+                    fileType: doc.fileType || 'unknown',
+                    fileSize: doc.fileSize || 0,
+                    uploadedBy: doc.uploadedBy || { firstName: 'Unknown', lastName: 'User' },
+                    createdAt: doc.createdAt || new Date().toISOString()
                     }))
                     : [],
                 pagination: {
@@ -568,7 +678,7 @@ export const getContactDocuments = async (contactId, params) => {
                 }
             };
         }
-        // Handle other possible response formats
+        // If response.data is the documents array itself
         else if (Array.isArray(response.data)) {
             transformedData = {
                 documents: response.data.map(doc => ({
@@ -579,6 +689,20 @@ export const getContactDocuments = async (contactId, params) => {
                     page: params.page || 1,
                     limit: params.limit || 10,
                     total: response.data.length
+                }
+            };
+        }
+        // NEW: If response.data.data is the documents array (common format)
+        else if (Array.isArray(response.data?.data)) {
+            transformedData = {
+                documents: response.data.data.map(doc => ({
+                    ...doc,
+                    id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                })),
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: response.data.data.length
                 }
             };
         }
@@ -594,7 +718,7 @@ export const getContactDocuments = async (contactId, params) => {
             };
         }
         
-        debugLog2('Transformed document data', transformedData);
+        debugLog2('Transformed contact document data', transformedData);
         return transformedData;
     } catch (error) {
         // Handle API errors
@@ -603,6 +727,32 @@ export const getContactDocuments = async (contactId, params) => {
                 status: error.response.status,
                 data: error.response.data
             });
+            
+            // For 404 errors, provide more diagnostic information
+            if (error.response.status === 404) {
+                console.error('==== 404 ERROR DIAGNOSTIC INFO (getContactDocuments) ====');
+                console.error('Endpoint not found:', error.config?.url);
+                console.error('BASE_URL being used:', BASE_URL);
+                console.error('Contact ID:', contactId);
+                console.error('Params:', params);
+                console.error('Response data:', error.response?.data);
+                console.error('================================================');
+                
+                // Get the hostname part of the URL for troubleshooting
+                let hostname = 'unknown';
+                try {
+                    hostname = new URL(error.config?.url).hostname;
+                } catch(e) {}
+                
+                console.error(`Contact documents endpoint not found (404): ${error.config?.url}. 
+                This could be due to:
+                1. The API server at ${hostname} is not running
+                2. The endpoint does not exist on the server
+                3. The path is incorrect (check for typos)
+                4. CORS is blocking the request
+                
+                Please check that your backend server is running and has these endpoints configured.`);
+            }
             
             // Provide a fallback to prevent breaking UI
             return { 
@@ -640,20 +790,56 @@ export const getAccountDocuments = async (accountId, params) => {
         if (params.limit) queryParams.append('limit', params.limit.toString());
         if (params.search) queryParams.append('search', params.search);
         
+        // Ensure the account ID is valid
+        if (!accountId || accountId === 'undefined' || accountId === 'null') {
+            console.error('Invalid account ID provided:', accountId);
+            return { 
+                documents: [],
+                pagination: { page: params.page || 1, limit: params.limit || 10, total: 0 } 
+            };
+        }
+        
         const apiUrl = joinApiPaths(BASE_URL, `document/account/${accountId}`) + `?${queryParams.toString()}`;
         
-        const response = await axios.get(apiUrl, {
+        // More detailed URL debugging
+        console.log('==== GET ACCOUNT DOCUMENTS DEBUG ====');
+        console.log('API URL:', apiUrl);
+        console.log('Account ID:', accountId);
+        console.log('Params:', params);
+        console.log('BASE_URL used:', BASE_URL);
+        console.log('Authorization header present:', !!accessToken);
+        console.log('Request method:', 'GET');
+        console.log('==============================');
+        
+        // Try a direct axios request instead of axios.get to have more control
+        const response = await axios({
+            method: 'GET',
+            url: apiUrl,
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
             },
+            timeout: 10000 // 10 second timeout
         });
         
         // Use the new debug utility to analyze the structure
         debugApiResponse(`GET ${apiUrl}`, response, 'AccountDocuments');
-        debugLog2('getAccountDocuments response', response.data);
+        debugLog2('getAccountDocuments raw response', response);
+        debugLog2('getAccountDocuments response.data', response.data);
         
         // Handle different response formats from the backend
         let transformedData;
+        
+        // IMPORTANT - log the exact data structure for debugging
+        console.log('Account Documents Response Structure:', {
+            hasData: !!response.data,
+            isObject: typeof response.data === 'object',
+            isArray: Array.isArray(response.data),
+            topLevelKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : [],
+            hasNestedData: response.data && response.data.data && typeof response.data.data === 'object',
+            hasDocuments: response.data && response.data.documents && Array.isArray(response.data.documents),
+            documentCount: response.data && response.data.documents && Array.isArray(response.data.documents) ? response.data.documents.length : 0
+        });
         
         // If the response has a nested data.data structure (common in many APIs)
         if (response.data?.data?.data) {
@@ -670,7 +856,7 @@ export const getAccountDocuments = async (accountId, params) => {
                         createdAt: doc.createdAt || new Date().toISOString()
                     }))
                     : [],
-                pagination: {
+            pagination: {
                     page: response.data.data.page || params.page || 1,
                     limit: response.data.data.limit || params.limit || 10,
                     total: response.data.data.total || 0
@@ -687,13 +873,13 @@ export const getAccountDocuments = async (accountId, params) => {
                     }))
                     : [],
                 pagination: response.data.pagination || {
-                    page: params.page || 1,
-                    limit: params.limit || 10,
+                page: params.page || 1,
+                limit: params.limit || 10,
                     total: response.data.documents?.length || 0
                 }
             };
         }
-        // Handle other possible response formats
+        // If response.data is the documents array itself
         else if (Array.isArray(response.data)) {
             transformedData = {
                 documents: response.data.map(doc => ({
@@ -704,6 +890,20 @@ export const getAccountDocuments = async (accountId, params) => {
                     page: params.page || 1,
                     limit: params.limit || 10,
                     total: response.data.length
+                }
+            };
+        }
+        // NEW: If response.data.data is the documents array (common format)
+        else if (Array.isArray(response.data?.data)) {
+            transformedData = {
+                documents: response.data.data.map(doc => ({
+                    ...doc,
+                    id: doc.documentId || doc.id || `doc-${Math.random()}`,
+                })),
+                pagination: {
+                    page: params.page || 1,
+                    limit: params.limit || 10,
+                    total: response.data.data.length
                 }
             };
         }
@@ -728,6 +928,32 @@ export const getAccountDocuments = async (accountId, params) => {
                 status: error.response.status,
                 data: error.response.data
             });
+            
+            // For 404 errors, provide more diagnostic information
+            if (error.response.status === 404) {
+                console.error('==== 404 ERROR DIAGNOSTIC INFO (getAccountDocuments) ====');
+                console.error('Endpoint not found:', error.config?.url);
+                console.error('BASE_URL being used:', BASE_URL);
+                console.error('Account ID:', accountId);
+                console.error('Params:', params);
+                console.error('Response data:', error.response?.data);
+                console.error('================================================');
+                
+                // Get the hostname part of the URL for troubleshooting
+                let hostname = 'unknown';
+                try {
+                    hostname = new URL(error.config?.url).hostname;
+                } catch(e) {}
+                
+                console.error(`Account documents endpoint not found (404): ${error.config?.url}. 
+                This could be due to:
+                1. The API server at ${hostname} is not running
+                2. The endpoint does not exist on the server
+                3. The path is incorrect (check for typos)
+                4. CORS is blocking the request
+                
+                Please check that your backend server is running and has these endpoints configured.`);
+            }
             
             // Provide a fallback to prevent breaking UI
             return { 

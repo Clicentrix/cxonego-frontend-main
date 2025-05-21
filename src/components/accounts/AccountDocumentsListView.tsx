@@ -144,10 +144,13 @@ const AccountDocumentsListView: React.FC<AccountDocumentsListViewProps> = ({ acc
       headerName: "ACTIONS",
       width: 120,
       renderCell: (params: GridCellParams) => (
+        
         <div className="action-buttons">
+         
           <Tooltip title="Download">
+           
             <a 
-              href={params?.row?.fileUrl} 
+              href={params?.row?.googleDriveLink} 
               target="_blank"
               rel="noopener noreferrer"
               className="action-button"

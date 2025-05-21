@@ -43,6 +43,56 @@ const getEnvironmentMode = () => {
     }
     return 'production'; // Default to production for safety
 };
+const isDevelopment = () => {
+    return (
+        import.meta.env.MODE === 'development' || 
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1'
+    );
+};
+const getPreferredCallbackUrl = () => {
+    if (isDevelopment()) {
+        // For local development, use localhost
+        const port = window.location.port ? `:${window.location.port}` : '';
+        return `http://${window.location.hostname}${port}/auth-success`;
+    } else {
+        // For production, use the configured callback URL
+        return import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL || 'https://app.cxonego.me/auth-success';
+    }
+};
+console.log('Environment details:');
+console.log('Current hostname:', window.location.hostname);
+console.log('isDevelopment:', isDevelopment());
+console.log('Preferred callback URL:', getPreferredCallbackUrl());
+
+// Add a function to handle the auth flow that includes the correct callback URL
+const initiateAuthFlow = async () => {
+    try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            console.error('No userId found in localStorage');
+            return null;
+        }
+        
+        // Construct the auth URL with the correct parameters
+        const baseUrl = import.meta.env.VITE_REACT_APP_BASE_URL || 'http://localhost:8000/api/v1';
+        const callbackUrl = getPreferredCallbackUrl();
+        
+        console.log('Initiating auth flow with:');
+        console.log('- Base URL:', baseUrl);
+        console.log('- Callback URL:', callbackUrl);
+        console.log('- User ID:', userId);
+        
+        const url = `${baseUrl}/document/auth/google?userId=${userId}&redirect_uri=${encodeURIComponent(callbackUrl)}`;
+        console.log('Full auth URL:', url);
+        
+        return url;
+    } catch (error) {
+        console.error('Error constructing auth URL:', error);
+        return null;
+    }
+};
+
 const GoogleAuthCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -51,17 +101,23 @@ const GoogleAuthCallback = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [debugInfo, setDebugInfo] = useState(null);
     // Function to handle manual retry
-    const handleRetry = () => {
+    const handleRetry = async () => {
         try {
-            // Redirect back to Google auth flow
-            dispatch(getGoogleAuth())
-                .unwrap()
-                .then(url => {
+            // Use our custom auth flow function instead of Redux
+            const url = await initiateAuthFlow();
+            
                 if (url && typeof url === 'string') {
                     debugLog('Retrying Google Auth - Redirecting to:', url, 'GoogleAuthCallback');
                     window.location.href = url;
-                }
-                else {
+            } else {
+                // Fallback to Redux method if our custom function fails
+                dispatch(getGoogleAuth())
+                    .unwrap()
+                    .then(reduxUrl => {
+                        if (reduxUrl && typeof reduxUrl === 'string') {
+                            debugLog('Retrying Google Auth (Redux fallback) - Redirecting to:', reduxUrl, 'GoogleAuthCallback');
+                            window.location.href = reduxUrl;
+                        } else {
                     setErrorMessage('Could not get authentication URL for retry.');
                     setStatus('error');
                 }
@@ -72,7 +128,7 @@ const GoogleAuthCallback = () => {
                 setStatus('error');
             });
         }
-        catch (error) {
+        } catch (error) {
             debugLog('Manual retry failed:', error, 'GoogleAuthCallback');
             setErrorMessage('Failed to retry authentication. Please try again.');
             setStatus('error');
@@ -170,11 +226,13 @@ const GoogleAuthCallback = () => {
                             localStorage.removeItem('google_auth_redirect_count');
                             return;
                         }
+                        
                         // ENHANCED ANTI-LOOP MECHANISM:
                         // Check if we're in a potential redirect loop by looking at localStorage
                         const lastRedirectTime = localStorage.getItem('google_auth_last_redirect');
                         const redirectCount = parseInt(localStorage.getItem('google_auth_redirect_count') || '0');
                         const now = Date.now();
+                        
                         // ULTRA AGGRESSIVE: If this isn't the first attempt, immediately show error
                         if (redirectCount > 0) {
                             debugLog('Google Auth Callback - Preventing any more redirects after first attempt', { redirectCount }, 'GoogleAuthCallback');
@@ -195,37 +253,35 @@ const GoogleAuthCallback = () => {
                             localStorage.removeItem('google_auth_redirect_count');
                             return;
                         }
-                        // If we've redirected more than 2 times, add the loopBreak parameter to prevent further loops
-                        if (redirectCount > 2) {
-                            debugLog('Google Auth Callback - Too many redirects detected, HARD STOPPING authentication loop', { redirectCount }, 'GoogleAuthCallback');
-                            // Get the Google Cloud Console URLs
-                            const backendUrl = getEnvVariable('REACT_APP_API_URL', 'http://localhost:8000');
-                            const correctRedirectUri = `${backendUrl}/api/v1/document/auth/google/callback`;
-                            setStatus('error');
-                            setErrorMessage(`
-                ⚠️ AUTHENTICATION LOOP DETECTED AND STOPPED ⚠️
-                
-                We've detected ${redirectCount} redirects, which indicates a misconfiguration.
-                
-                THE ISSUE:
-                Your Google OAuth configuration is using the wrong redirect URI.
-              `);
-                            // Reset our loop detection
-                            localStorage.removeItem('google_auth_last_redirect');
-                            localStorage.removeItem('google_auth_redirect_count');
-                            // Completely stop the loop - no more redirects
-                            return;
-                        }
+                        
                         // Update redirect tracking
                         localStorage.setItem('google_auth_last_redirect', now.toString());
                         localStorage.setItem('google_auth_redirect_count', (redirectCount + 1).toString());
+                        
                         // Attempt to start the auth flow, but with a loop break parameter in case we're looping
                         try {
-                            // Get the auth URL directly instead of using redux
-                            debugLog('Google Auth Callback - Provider=google detected, getting direct auth URL', { redirectCount: redirectCount + 1 }, 'GoogleAuthCallback');
+                            // Use our custom auth function instead of Redux
+                            debugLog('Google Auth Callback - Provider=google detected, using custom auth function', { redirectCount: redirectCount + 1 }, 'GoogleAuthCallback');
                             message.info('Initiating Google authentication flow...');
-                            // Use Redux with a timeout to ensure we don't get stuck
+                            
+                            // Get the auth URL using our custom function
+                            const authUrl = await initiateAuthFlow();
+                            
+                            if (authUrl && typeof authUrl === 'string') {
+                                debugLog('Google Auth - Redirecting to custom-generated URL:', authUrl, 'GoogleAuthCallback');
+                                
+                                // Add a loopBreak parameter if we've already redirected once
+                                if (redirectCount > 0) {
+                                    const urlObj = new URL(authUrl);
+                                    urlObj.searchParams.append('loopBreak', 'true');
+                                    window.location.href = urlObj.toString();
+                                } else {
+                                    window.location.href = authUrl;
+                                }
+                            } else {
+                                // Fallback to Redux approach if our custom function fails
                             const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth URL request timed out')), 5000));
+                                
                             // Race between getting the URL and timeout
                             Promise.race([
                                 dispatch(getGoogleAuth()).unwrap(),
@@ -233,18 +289,17 @@ const GoogleAuthCallback = () => {
                             ])
                                 .then(url => {
                                 if (url && typeof url === 'string') {
-                                    debugLog('Google Auth - Redirecting to:', url, 'GoogleAuthCallback');
+                                            debugLog('Google Auth - Redirecting to Redux-generated URL:', url, 'GoogleAuthCallback');
+                                            
                                     // Add a loopBreak parameter if we've already redirected once
                                     if (redirectCount > 0) {
                                         const urlObj = new URL(url);
                                         urlObj.searchParams.append('loopBreak', 'true');
                                         window.location.href = urlObj.toString();
-                                    }
-                                    else {
+                                            } else {
                                         window.location.href = url;
                                     }
-                                }
-                                else {
+                                        } else {
                                     setStatus('error');
                                     setErrorMessage('Could not get authentication URL from server.');
                                     // Reset redirect tracking on error
@@ -252,22 +307,24 @@ const GoogleAuthCallback = () => {
                                     localStorage.removeItem('google_auth_redirect_count');
                                 }
                             })
-                                .catch(err => {
-                                debugLog('Error getting Google Auth URL:', err, 'GoogleAuthCallback');
+                                    .catch(error => {
+                                        debugLog('Google Auth - Error getting auth URL:', error, 'GoogleAuthCallback');
                                 setStatus('error');
-                                setErrorMessage('Failed to initiate authentication. Verify your backend API is running.');
+                                        setErrorMessage(`Failed to get authentication URL: ${error.message}`);
                                 // Reset redirect tracking on error
                                 localStorage.removeItem('google_auth_last_redirect');
                                 localStorage.removeItem('google_auth_redirect_count');
                             });
-                            return;
-                        }
-                        catch (error) {
-                            debugLog('Error initiating Google Auth:', error, 'GoogleAuthCallback');
+                            }
+                        } catch (error) {
+                            debugLog('Google Auth Callback - Error initiating auth flow:', error, 'GoogleAuthCallback');
+                            setStatus('error');
+                            setErrorMessage(`Authentication error: ${error.message}`);
                             // Reset redirect tracking on error
                             localStorage.removeItem('google_auth_last_redirect');
                             localStorage.removeItem('google_auth_redirect_count');
                         }
+                        return;
                     }
                     // If we reach here, we couldn't handle the request properly
                     setStatus('error');

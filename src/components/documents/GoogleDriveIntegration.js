@@ -17,6 +17,21 @@ const GoogleDriveIntegration = ({ onConnected, showTitle = true, condensed = fal
     const [initialCheckPerformed, setInitialCheckPerformed] = useState(false);
     const [checkingConnection, setCheckingConnection] = useState(false);
     const [connectionError, setConnectionError] = useState('');
+    const isDevelopment = () => {
+        return (
+            import.meta.env.MODE === 'development' || 
+            window.location.hostname === 'localhost' || 
+            window.location.hostname === '127.0.0.1'
+        );
+    };
+    const getCallbackUrl = () => {
+        if (isDevelopment()) {
+            const port = window.location.port ? `:${window.location.port}` : '';
+            return `http://${window.location.hostname}${port}/auth-success`;
+        } else {
+            return import.meta.env.VITE_GOOGLE_AUTH_CALLBACK_URL || 'https://app.cxonego.me/auth-success';
+        }
+    };
     useEffect(() => {
         // Only check connection once when component mounts
         if (!initialCheckPerformed) {
@@ -165,6 +180,10 @@ const GoogleDriveIntegration = ({ onConnected, showTitle = true, condensed = fal
             localStorage.setItem('google_auth_debug_userId', userId);
             message.loading('Preparing Google Drive connection...', 1);
             try {
+                const params = new URLSearchParams();
+                params.append('userId', userId);
+                params.append('redirect_uri', getCallbackUrl());
+                console.log('Using callback URL:', getCallbackUrl());
                 const response = await dispatch(getGoogleAuth()).unwrap();
                 debugLog('[Google Auth] Got response from getGoogleAuth:', response, 'GoogleDriveIntegration');
                 const extractUrlFromResponse = (response) => {

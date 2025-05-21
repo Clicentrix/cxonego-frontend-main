@@ -239,7 +239,7 @@ export const deleteDocumentAndRefresh = createAsyncThunk(
         if (endpoint === 'account' && accountId) {
             dispatch(getAccountDocumentsThunk({ accountId, params, endpoint }));
         } else if (contactId) {
-            dispatch(getContactDocumentsThunk({ contactId, params }));
+        dispatch(getContactDocumentsThunk({ contactId, params }));
         }
         
         return { success: true };

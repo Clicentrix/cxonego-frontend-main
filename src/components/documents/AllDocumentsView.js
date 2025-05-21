@@ -90,7 +90,7 @@ const AllDocumentsView = ({ contactId }) => {
         },
         {
             field: "uploadedByName",
-            headerName: "OWNER",
+            headerName: "OWNERR",
             width: 200,
             renderCell: (params) => {
                 const fullName = params?.row?.uploadedBy ?

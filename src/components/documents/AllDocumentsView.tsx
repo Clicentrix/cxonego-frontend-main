@@ -142,8 +142,8 @@ const AllDocumentsView: React.FC<AllDocumentsViewProps> = ({ contactId }) => {
       },
     },
     {
-      field: "actions",
-      headerName: "ACTIONS",
+      field: "actions1",
+      headerName: "ACTIONS1",
       width: 120,
       renderCell: (params: GridCellParams) => (
         <div className="action-buttons">
